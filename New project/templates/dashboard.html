@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}仪表盘 | 智能燃气监测系统{% endblock %}
+
+{% block body %}
+<main class="app-layout dashboard-shell" data-page="dashboard" data-api-url="{{ url_for('api_dashboard') }}" data-ws-url="{{ ws_url }}">
+    <aside class="sidebar">
+        <div class="brand"><p class="eyebrow">Gas IoT</p><h2>监测平台</h2></div>
+        <nav class="nav-menu">
+            <a class="nav-item {% if active_page == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">实时仪表盘</a>
+            <a class="nav-item {% if active_page == 'devices' %}active{% endif %}" href="{{ url_for('devices_page') }}">设备管理</a>
+            <a class="nav-item {% if active_page == 'alerts' %}active{% endif %}" href="{{ url_for('alerts_page') }}">告警中心</a>
+            <a class="nav-item {% if active_page == 'history' %}active{% endif %}" href="{{ url_for('history_page') }}">历史数据</a>
+            <a class="nav-item {% if active_page == 'settings' %}active{% endif %}" href="{{ url_for('settings_page') }}">系统设置</a>
+        </nav>
+    </aside>
+
+    <section class="main-panel">
+        <header class="topbar">
+            <div><p class="eyebrow">IoT Gas Analytics</p><h1>实时监测仪表盘</h1></div>
+            <div class="topbar-actions">
+                <div class="welcome">当前用户：{{ user_name }}</div>
+                <a class="logout-link" href="{{ url_for('logout') }}">退出登录</a>
+            </div>
+        </header>
+
+        <section class="stats-grid">
+            <article class="stat-card"><span>设备总数</span><strong id="totalDevices">-</strong></article>
+            <article class="stat-card"><span>在线设备</span><strong id="onlineDevices">-</strong></article>
+            <article class="stat-card"><span>累计上报</span><strong id="totalReadings">-</strong></article>
+            <article class="stat-card danger"><span>24 小时异常</span><strong id="anomalies24h">-</strong></article>
+        </section>
+
+        <section class="dashboard-grid">
+            <article class="panel chart-panel">
+                <div class="panel-head">
+                    <h2>流量与异常分数趋势</h2>
+                    <span class="panel-note">WebSocket 实时推送</span>
+                </div>
+                <canvas id="trendChart" height="240"></canvas>
+            </article>
+
+            <article class="panel system-panel">
+                <div class="panel-head"><h2>系统说明</h2></div>
+                <div class="system-list">
+                    <div><span>数据库</span><strong>MySQL 优先，可切换</strong></div>
+                    <div><span>设备接入</span><strong>真实上传 API + 模拟器</strong></div>
+                    <div><span>实时方式</span><strong>WebSocket 推送</strong></div>
+                </div>
+            </article>
+        </section>
+
+        <section class="dashboard-grid lower">
+            <article class="panel">
+                <div class="panel-head"><h2>设备实时状态</h2></div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>设备编号</th>
+                                <th>位置</th>
+                                <th>状态</th>
+                                <th>瞬时流量</th>
+                                <th>累计用气量</th>
+                                <th>电压</th>
+                                <th>信号</th>
+                                <th>最后上报</th>
+                            </tr>
+                        </thead>
+                        <tbody id="deviceRows"></tbody>
+                    </table>
+                </div>
+            </article>
+
+            <article class="panel">
+                <div class="panel-head"><h2>最新异常告警</h2></div>
+                <div id="alertList" class="alert-list"></div>
+            </article>
+        </section>
+    </section>
+</main>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+{% endblock %}

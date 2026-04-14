@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}注册 | 智能燃气监测系统{% endblock %}
+
+{% block body %}
+<main class="auth-shell">
+    <section class="auth-poster">
+        <p class="eyebrow">System Access</p>
+        <h1>创建平台账号</h1>
+        <p class="poster-text">
+            注册后即可进入实时监测仪表盘，查看设备状态、历史读数和异常告警信息。
+        </p>
+    </section>
+
+    <section class="auth-card">
+        <div>
+            <p class="card-kicker">用户注册</p>
+            <h2>新建账号</h2>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-stack">
+            {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <form method="post" class="auth-form">
+            <label>用户名</label>
+            <input type="text" name="username" required>
+            <label>姓名</label>
+            <input type="text" name="full_name" required>
+            <label>密码</label>
+            <input type="password" name="password" required>
+            <label>确认密码</label>
+            <input type="password" name="confirm_password" required>
+            <button type="submit">完成注册</button>
+        </form>
+
+        <p class="auth-switch">已有账号？<a href="{{ url_for('login') }}">返回登录</a></p>
+    </section>
+</main>
+{% endblock %}

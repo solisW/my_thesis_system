@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}历史数据 | 智能燃气监测系统{% endblock %}
+
+{% block body %}
+<main class="app-layout page-shell" data-page="history" data-api-url="{{ url_for('api_history') }}" data-ws-url="{{ ws_url }}">
+    <aside class="sidebar">
+        <div class="brand"><p class="eyebrow">Gas IoT</p><h2>监测平台</h2></div>
+        <nav class="nav-menu">
+            <a class="nav-item {% if active_page == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">实时仪表盘</a>
+            <a class="nav-item {% if active_page == 'devices' %}active{% endif %}" href="{{ url_for('devices_page') }}">设备管理</a>
+            <a class="nav-item {% if active_page == 'alerts' %}active{% endif %}" href="{{ url_for('alerts_page') }}">告警中心</a>
+            <a class="nav-item {% if active_page == 'history' %}active{% endif %}" href="{{ url_for('history_page') }}">历史数据</a>
+            <a class="nav-item {% if active_page == 'settings' %}active{% endif %}" href="{{ url_for('settings_page') }}">系统设置</a>
+        </nav>
+    </aside>
+    <section class="main-panel">
+        <header class="topbar">
+            <div><p class="eyebrow">History Query</p><h1>历史数据查询</h1></div>
+            <div class="topbar-actions"><div class="welcome">当前用户：{{ user_name }}</div><a class="logout-link" href="{{ url_for('logout') }}">退出登录</a></div>
+        </header>
+        <section class="panel">
+            <div class="panel-head"><h2>按设备筛选历史读数</h2></div>
+            <div class="filters">
+                <label for="meterSelect">设备编号</label>
+                <select id="meterSelect">
+                    <option value="">全部设备</option>
+                    {% for meter_id in meter_ids %}
+                    <option value="{{ meter_id }}">{{ meter_id }}</option>
+                    {% endfor %}
+                </select>
+                <button id="historyRefreshButton" class="secondary-button" type="button">刷新数据</button>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>时间</th>
+                            <th>设备</th>
+                            <th>瞬时流量</th>
+                            <th>累计用气量</th>
+                            <th>电压</th>
+                            <th>信号</th>
+                            <th>温度</th>
+                            <th>压力</th>
+                            <th>判定</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyRows"></tbody>
+                </table>
+            </div>
+        </section>
+    </section>
+</main>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+{% endblock %}

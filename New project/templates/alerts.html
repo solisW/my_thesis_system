@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}告警中心 | 智能燃气监测系统{% endblock %}
+
+{% block body %}
+<main class="app-layout page-shell" data-page="alerts" data-api-url="{{ url_for('api_alerts') }}" data-ws-url="{{ ws_url }}">
+    <aside class="sidebar">
+        <div class="brand"><p class="eyebrow">Gas IoT</p><h2>监测平台</h2></div>
+        <nav class="nav-menu">
+            <a class="nav-item {% if active_page == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">实时仪表盘</a>
+            <a class="nav-item {% if active_page == 'devices' %}active{% endif %}" href="{{ url_for('devices_page') }}">设备管理</a>
+            <a class="nav-item {% if active_page == 'alerts' %}active{% endif %}" href="{{ url_for('alerts_page') }}">告警中心</a>
+            <a class="nav-item {% if active_page == 'history' %}active{% endif %}" href="{{ url_for('history_page') }}">历史数据</a>
+            <a class="nav-item {% if active_page == 'settings' %}active{% endif %}" href="{{ url_for('settings_page') }}">系统设置</a>
+        </nav>
+    </aside>
+    <section class="main-panel">
+        <header class="topbar">
+            <div><p class="eyebrow">Alert Center</p><h1>异常告警中心</h1></div>
+            <div class="topbar-actions"><div class="welcome">当前用户：{{ user_name }}</div><a class="logout-link" href="{{ url_for('logout') }}">退出登录</a></div>
+        </header>
+        <section class="panel">
+            <div class="panel-head"><h2>最新告警记录</h2><span class="panel-note">WebSocket 实时更新</span></div>
+            <div id="alertsBoard" class="alert-grid"></div>
+        </section>
+    </section>
+</main>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+{% endblock %}

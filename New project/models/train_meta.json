@@ -1,0 +1,15 @@
+{
+  "feature_columns": [
+    "instant_flow",
+    "cumulative_usage",
+    "battery_voltage",
+    "signal_strength",
+    "valve_state",
+    "temperature",
+    "pressure"
+  ],
+  "window_size": 24,
+  "hidden_size": 32,
+  "num_layers": 2,
+  "threshold": 0.9424038529396057
+}
