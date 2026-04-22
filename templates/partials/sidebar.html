@@ -1,0 +1,16 @@
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <p class="eyebrow">Smart Gas Ops</p>
+        <h2>调度后台</h2>
+    </div>
+    <nav class="nav-menu">
+        <a class="nav-item {% if active_page == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">主页</a>
+        <a class="nav-item {% if active_page == 'devices' %}active{% endif %}" href="{{ url_for('devices_page') }}">设备管理</a>
+        <a class="nav-item {% if active_page == 'engineers' %}active{% endif %}" href="{{ url_for('engineers_page') }}">工程师管理</a>
+        <a class="nav-item {% if active_page == 'work_orders' %}active{% endif %}" href="{{ url_for('work_orders_page') }}">工单调度</a>
+        <a class="nav-item {% if active_page == 'alerts' %}active{% endif %}" href="{{ url_for('alerts_page') }}">告警中心</a>
+        <a class="nav-item {% if active_page == 'reports' %}active{% endif %}" href="{{ url_for('reports_page') }}">统计报表</a>
+        <a class="nav-item {% if active_page == 'history' %}active{% endif %}" href="{{ url_for('history_page') }}">历史数据</a>
+        <a class="nav-item {% if active_page == 'settings' %}active{% endif %}" href="{{ url_for('settings_page') }}">系统设置</a>
+    </nav>
+</aside>

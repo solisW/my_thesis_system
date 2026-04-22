@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}首页 | 智能燃气调度平台{% endblock %}
+
+{% block body %}
+<main class="admin-shell dashboard-shell" data-page="dashboard" data-ws-url="{{ ws_url }}">
+    {% include "partials/sidebar.html" %}
+    <section class="content-shell">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">Overview</p>
+                <h1>主页总览</h1>
+                <p class="subtle">设备状态、真实地图、告警趋势和工单流转集中展示。</p>
+            </div>
+            <div class="topbar-right">
+                <span class="user-badge">{{ user_name }}</span>
+                <a class="logout-link" href="{{ url_for('logout') }}">退出登录</a>
+            </div>
+        </header>
+
+        <section class="stats-grid">
+            <article class="stat-card connected">
+                <span>设备在线</span>
+                <strong id="connectedCount">0</strong>
+            </article>
+            <article class="stat-card offline">
+                <span>设备离线</span>
+                <strong id="offlineCount">0</strong>
+            </article>
+            <article class="stat-card abnormal">
+                <span>异常设备</span>
+                <strong id="abnormalCount">0</strong>
+            </article>
+            <article class="stat-card total">
+                <span>设备总数</span>
+                <strong id="totalCount">0</strong>
+            </article>
+        </section>
+
+        <section class="panel panel-large">
+            <div class="panel-head">
+                <div>
+                    <h2>设备真实地图</h2>
+                    <p class="panel-note">点位采用真实底图展示，点击后显示设备地址。</p>
+                </div>
+                <div class="map-toolbar">
+                    <button type="button" data-map-filter="all" class="mini-button active">全部</button>
+                    <button type="button" data-map-filter="online" class="mini-button">正常</button>
+                    <button type="button" data-map-filter="anomaly" class="mini-button">异常</button>
+                    <button type="button" data-map-filter="offline" class="mini-button">离线</button>
+                </div>
+            </div>
+            <div id="mapBoard" class="map-board"></div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-head">
+                <div>
+                    <h2>最新告警</h2>
+                    <p class="panel-note">支持按时间和紧急程度排序。</p>
+                </div>
+                <select id="dashboardAlertSort">
+                    <option value="time">按时间</option>
+                    <option value="severity">按紧急程度</option>
+                </select>
+            </div>
+            <div id="dashboardAlerts" class="stack-list"></div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-head">
+                <div>
+                    <h2>设备运行详情</h2>
+                    <p class="panel-note">单独模块展示设备运行状态和实时指标。</p>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>设备编号</th>
+                            <th>位置</th>
+                            <th>状态</th>
+                            <th>瞬时流量</th>
+                            <th>信号</th>
+                            <th>电压</th>
+                            <th>更新时间</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dashboardDevices"></tbody>
+                </table>
+            </div>
+        </section>
+    </section>
+</main>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+{% endblock %}

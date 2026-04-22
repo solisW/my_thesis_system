@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}设备管理 | 智能燃气调度平台{% endblock %}
+
+{% block body %}
+<main class="admin-shell" data-page="devices" data-ws-url="{{ ws_url }}">
+    {% include "partials/sidebar.html" %}
+    <section class="content-shell">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">Device Management</p>
+                <h1>设备管理</h1>
+                <p class="subtle">统一管理设备基础信息、位置、连通性和关联工单。</p>
+            </div>
+            <div class="topbar-right">
+                <span class="user-badge">{{ user_name }}</span>
+                <a class="logout-link" href="{{ url_for('logout') }}">退出登录</a>
+            </div>
+        </header>
+
+        <section class="panel">
+            <div class="panel-head">
+                <div>
+                    <h2>设备信息维护</h2>
+                    <p class="panel-note">支持新增、编辑、删除与连通性测试。</p>
+                </div>
+            </div>
+            <form id="deviceForm" class="form-grid">
+                <input type="hidden" id="deviceId">
+                <input id="deviceMeterId" type="text" placeholder="设备编号">
+                <input id="deviceName" type="text" placeholder="设备名称">
+                <input id="deviceLocation" type="text" placeholder="安装位置">
+                <input id="deviceArea" type="text" placeholder="所属片区">
+                <input id="deviceLatitude" type="number" step="0.0001" placeholder="纬度">
+                <input id="deviceLongitude" type="number" step="0.0001" placeholder="经度">
+                <select id="deviceMode">
+                    <option value="physical">真实设备</option>
+                    <option value="simulated">模拟设备</option>
+                </select>
+                <input id="deviceProtocol" type="text" placeholder="协议，如 HTTP / MQTT">
+                <input id="deviceIp" type="text" placeholder="IP 地址">
+                <input id="devicePort" type="number" placeholder="端口">
+                <input id="deviceFirmware" type="text" placeholder="固件版本">
+                <input id="deviceApiKey" type="text" placeholder="API Key">
+                <div class="form-actions">
+                    <button class="primary-button" type="submit">保存设备</button>
+                    <button id="deviceReset" class="ghost-button" type="button">清空表单</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="panel">
+            <div class="panel-head">
+                <div>
+                    <h2>设备列表</h2>
+                    <p class="panel-note">列表展示设备状态、位置和当前关联工单数量。</p>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>设备编号</th>
+                            <th>名称</th>
+                            <th>位置</th>
+                            <th>模式</th>
+                            <th>状态</th>
+                            <th>未完成工单</th>
+                            <th>最后上报</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deviceTable"></tbody>
+                </table>
+            </div>
+        </section>
+    </section>
+</main>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+{% endblock %}

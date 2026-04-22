@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}登录 | 智能燃气调度平台{% endblock %}
+
+{% block body %}
+<main class="login-shell">
+    <section class="login-brand">
+        <p class="eyebrow">Gas IoT Dispatch Center</p>
+        <h1>智能燃气设备监测与工单调度平台</h1>
+        <p class="hero-text">
+            覆盖设备监测、真实地图、告警分析、工程师调度、工单流转、连通性测试与统计分析。
+        </p>
+        <div class="feature-chips">
+            <span>实时设备上报</span>
+            <span>真实地图底图</span>
+            <span>WebSocket 平滑刷新</span>
+        </div>
+    </section>
+
+    <section class="login-panel">
+        <div class="panel-heading">
+            <p class="eyebrow">Sign In</p>
+            <h2>进入系统</h2>
+            <p class="subtle">请输入账号和密码登录平台。</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-stack">
+            {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <form method="post" class="auth-form">
+            <label>用户名</label>
+            <input type="text" name="username" placeholder="请输入用户名" required>
+            <label>密码</label>
+            <input type="password" name="password" placeholder="请输入密码" required>
+            <button type="submit">登录平台</button>
+        </form>
+
+        <p class="subtle">没有账号？<a class="text-link" href="{{ url_for('register') }}">前往注册</a></p>
+    </section>
+</main>
+{% endblock %}

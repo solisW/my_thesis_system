@@ -1,0 +1,70 @@
+import os
+from pathlib import Path
+
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+DATA_DIR = BASE_DIR / "data"
+RAW_DATA_DIR = DATA_DIR / "raw"
+PROCESSED_DATA_DIR = DATA_DIR / "processed"
+MODEL_DIR = BASE_DIR / "models"
+DOCS_DIR = BASE_DIR / "docs"
+INSTANCE_DIR = BASE_DIR / "instance"
+
+RAW_DATA_FILE = RAW_DATA_DIR / "gas_meter_readings.csv"
+PREDICTION_FILE = PROCESSED_DATA_DIR / "predictions.csv"
+DATABASE_FILE = INSTANCE_DIR / "gas_monitor.db"
+
+MODEL_FILE = MODEL_DIR / "lstm_autoencoder.pt"
+SCALER_FILE = MODEL_DIR / "scaler.pkl"
+META_FILE = MODEL_DIR / "train_meta.json"
+
+FEATURE_COLUMNS = [
+    "instant_flow",
+    "cumulative_usage",
+    "battery_voltage",
+    "signal_strength",
+    "valve_state",
+    "temperature",
+    "pressure",
+]
+
+WINDOW_SIZE = 24
+TRAIN_EPOCHS = 20
+BATCH_SIZE = 32
+LEARNING_RATE = 0.001
+HIDDEN_SIZE = 32
+NUM_LAYERS = 2
+TRAIN_SPLIT = 0.8
+SIMULATION_INTERVAL_SECONDS = 3
+ONLINE_TIMEOUT_SECONDS = 15
+SIMULATION_DEVICE_COUNT = int(os.getenv("SIMULATION_DEVICE_COUNT", "50"))
+
+
+def ensure_directories() -> None:
+    for directory in [
+        DATA_DIR,
+        RAW_DATA_DIR,
+        PROCESSED_DATA_DIR,
+        MODEL_DIR,
+        DOCS_DIR,
+        INSTANCE_DIR,
+    ]:
+        directory.mkdir(parents=True, exist_ok=True)
+
+
+def get_database_uri() -> str:
+    database_url = os.getenv("DATABASE_URL", "").strip()
+    if database_url:
+        return database_url
+    mysql_user = os.getenv("MYSQL_USER", "root")
+    mysql_password = os.getenv("MYSQL_PASSWORD", "123456")
+    mysql_host = os.getenv("MYSQL_HOST", "127.0.0.1")
+    mysql_port = os.getenv("MYSQL_PORT", "3306")
+    mysql_database = os.getenv("MYSQL_DATABASE", "gas_monitor")
+    prefer_mysql = os.getenv("DB_BACKEND", "mysql").lower() == "mysql"
+    if prefer_mysql:
+        return (
+            f"mysql+pymysql://{mysql_user}:{mysql_password}"
+            f"@{mysql_host}:{mysql_port}/{mysql_database}"
+        )
+    return f"sqlite:///{DATABASE_FILE.as_posix()}"

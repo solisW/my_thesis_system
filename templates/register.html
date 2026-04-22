@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}注册 | 智能燃气调度平台{% endblock %}
+
+{% block body %}
+<main class="login-shell">
+    <section class="login-brand">
+        <p class="eyebrow">Access Management</p>
+        <h1>创建平台账号</h1>
+        <p class="hero-text">
+            注册后可进入设备监测后台，查看告警、分配工单并管理工程师和设备信息。
+        </p>
+    </section>
+
+    <section class="login-panel">
+        <div class="panel-heading">
+            <p class="eyebrow">Register</p>
+            <h2>新建账号</h2>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-stack">
+            {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <form method="post" class="auth-form">
+            <label>用户名</label>
+            <input type="text" name="username" required>
+            <label>姓名</label>
+            <input type="text" name="full_name" required>
+            <label>密码</label>
+            <input type="password" name="password" required>
+            <label>确认密码</label>
+            <input type="password" name="confirm_password" required>
+            <button type="submit">完成注册</button>
+        </form>
+
+        <p class="subtle">已有账号？<a class="text-link" href="{{ url_for('login') }}">返回登录</a></p>
+    </section>
+</main>
+{% endblock %}
