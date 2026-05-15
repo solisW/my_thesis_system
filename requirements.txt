@@ -8,3 +8,4 @@ cryptography>=45,<46
 scikit-learn>=1.8,<2
 torch>=2.11,<3
 joblib>=1.5,<2
+paho-mqtt>=2.1,<3

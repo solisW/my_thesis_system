@@ -1,0 +1,15 @@
+{
+  "name": "smart-gas-monitor-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Vue + ECharts + Leaflet frontend for the smart gas monitoring system.",
+  "scripts": {
+    "dev": "python -m http.server 5173 --bind 127.0.0.1",
+    "preview": "python -m http.server 5173 --bind 127.0.0.1"
+  },
+  "dependencies": {
+    "vue": "^3.4.38",
+    "echarts": "^5.5.1",
+    "leaflet": "^1.9.4"
+  }
+}
