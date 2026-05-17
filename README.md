@@ -18,8 +18,9 @@
 ## 目录结构
 
 ```text
-src/                 Flask 后端、检测服务、训练模块、网关与业务逻辑
-src/domain/          业务域门面和模块化入口
+src/                 Flask 后端、分层业务代码、检测服务、训练模块与网关
+src/application/     应用编排层，管理后台服务生命周期和实时广播
+src/domain/          业务域门面，提供设备、身份、监控、工单等稳定入口
 frontend/index.html  独立 Vue 前端入口
 frontend/src/        Vue 页面逻辑、ECharts/Leaflet 可视化和现代化样式
 scripts/             本地检查和实验评估脚本
@@ -108,6 +109,15 @@ $env:DB_BACKEND="sqlite"
 - `GET|POST /api/drift`：数据漂移监控状态与控制。
 
 完整接口见 `docs/接口文档.md`。
+
+## 后端分层
+
+当前后端按入口、应用编排、业务域、基础设施四层维护：
+
+- `src/app.py`：HTTP API、页面重定向、认证权限和 WebSocket 入口。
+- `src/application/`：后台服务运行态、实时广播等跨业务用例编排。
+- `src/domain/`：设备、身份、监控、工单和初始化等业务域门面。
+- `src/database.py`、`src/device_integration.py`、`src/model_registry.py`、`src/*_gateway.py`：数据库、设备接入、模型注册和外部协议适配。
 
 ## 生成物管理
 

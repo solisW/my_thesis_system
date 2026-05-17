@@ -9,6 +9,16 @@ from pathlib import Path
 from flask import Flask, flash, jsonify, redirect, request, session, url_for
 from sqlalchemy.exc import OperationalError
 
+from .application.realtime import (
+    broadcast_alert_state,
+    broadcast_device_state,
+    broadcast_engineer_state,
+    broadcast_named,
+    broadcast_settings_state,
+    broadcast_user_state,
+    broadcast_work_order_state,
+)
+from .application.runtime import RuntimeServices
 from .config import ensure_directories, get_database_uri
 from .database import Device, User, db, run_sqlite_migrations
 from .domain.bootstrap import ensure_access_bootstrap, ensure_database, seed_defaults
@@ -51,24 +61,16 @@ from .domain.work_orders import (
     update_work_order,
     work_orders_snapshot,
 )
-from .config import DRIFT_MONITOR_ENABLED
 from .carrier_gateway import ingest_carrier_payload
-from .drift_monitor import DriftMonitorService
 from .model_registry import sync_active_model_metadata_to_db
-from .mqtt_gateway import MqttGateway
 from .realtime import hub, sock
 from .security import cipher
-from .simulation_module import SimulationModule
-from .training_module import ContinuousTrainingService
 from .services import labeled_samples_snapshot, update_alert_feedback
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 FRONTEND_ROOT = PROJECT_ROOT / "frontend"
-simulator: SimulationModule | None = None
-trainer: ContinuousTrainingService | None = None
-mqtt_gateway: MqttGateway | None = None
-drift_monitor: DriftMonitorService | None = None
+runtime_services = RuntimeServices()
 TRANSIENT_MYSQL_DDL_ERROR_CODES = {1205, 1213, 1684}
 
 
@@ -91,7 +93,7 @@ def create_app() -> Flask:
 
     register_cors(app)
     register_routes(app)
-    start_background_services(app)
+    runtime_services.start_background_services(app)
     return app
 
 
@@ -156,25 +158,6 @@ def is_transient_mysql_startup_error(exc: OperationalError) -> bool:
     if error_code in TRANSIENT_MYSQL_DDL_ERROR_CODES:
         return True
     return "concurrent DDL" in message or "being modified" in message
-
-
-def start_background_services(app: Flask) -> None:
-    global drift_monitor
-    if not DRIFT_MONITOR_ENABLED:
-        return
-    drift_monitor = create_drift_monitor(app)
-    drift_monitor.start()
-
-
-def create_drift_monitor(app: Flask) -> DriftMonitorService:
-    def on_drift(result: dict[str, object]) -> None:
-        global trainer
-        if trainer is None:
-            trainer = ContinuousTrainingService(app, interval_seconds=300)
-        if not trainer.is_running():
-            trainer.start()
-
-    return DriftMonitorService(app, on_drift=on_drift)
 
 
 def login_required(view):
@@ -465,16 +448,14 @@ def register_routes(app: Flask) -> None:
             if "is_enabled" not in payload:
                 return jsonify({"ok": False, "message": "管理端仅支持启用或停用设备。"}), 400
             result = set_device_enabled(device_id, payload.get("is_enabled"))
-            hub.broadcast("devices", devices_snapshot())
-            hub.broadcast("dashboard", dashboard_snapshot())
+            broadcast_device_state()
             return jsonify({"ok": True, "device": result})
         if session.get("role") != "super_admin":
             return jsonify({"ok": False, "message": "只有主管理员可以删除设备。"}), 403
         delete_device(device_id)
-        hub.broadcast("devices", devices_snapshot())
-        hub.broadcast("dashboard", dashboard_snapshot())
-        hub.broadcast("work_orders", work_orders_snapshot())
-        hub.broadcast("reports", reports_snapshot())
+        broadcast_device_state()
+        broadcast_named("work_orders", work_orders_snapshot())
+        broadcast_named("reports", reports_snapshot())
         return jsonify({"ok": True})
 
     @app.route("/api/devices/<int:device_id>/connectivity-test", methods=["POST"])
@@ -500,7 +481,7 @@ def register_routes(app: Flask) -> None:
             result = update_engineer_presence(current_user(), online=online)
         except ValueError as exc:
             return jsonify({"ok": False, "message": str(exc)}), 400
-        hub.broadcast("engineers", engineers_snapshot())
+        broadcast_named("engineers", engineers_snapshot())
         return jsonify({"ok": True, "engineer": result})
 
     @app.route("/api/engineers/<int:engineer_id>", methods=["PUT", "DELETE"])
@@ -513,16 +494,10 @@ def register_routes(app: Flask) -> None:
                 result = update_engineer(engineer_id, request.get_json(silent=True) or {})
             except ValueError as exc:
                 return jsonify({"ok": False, "message": str(exc)}), 400
-            hub.broadcast("engineers", engineers_snapshot())
-            hub.broadcast("work_orders", work_orders_snapshot())
-            hub.broadcast("dashboard", dashboard_snapshot())
-            hub.broadcast("reports", reports_snapshot())
+            broadcast_engineer_state()
             return jsonify({"ok": True, "engineer": result})
         delete_engineer(engineer_id)
-        hub.broadcast("engineers", engineers_snapshot())
-        hub.broadcast("work_orders", work_orders_snapshot())
-        hub.broadcast("dashboard", dashboard_snapshot())
-        hub.broadcast("reports", reports_snapshot())
+        broadcast_engineer_state()
         return jsonify({"ok": True})
 
     @app.route("/api/users", methods=["GET", "POST"])
@@ -535,9 +510,7 @@ def register_routes(app: Flask) -> None:
             result = create_user(request.get_json(silent=True) or {})
         except ValueError as exc:
             return jsonify({"ok": False, "message": str(exc)}), 400
-        hub.broadcast("users", users_snapshot())
-        hub.broadcast("engineers", engineers_snapshot())
-        hub.broadcast("settings", settings_snapshot())
+        broadcast_user_state(include_settings=True)
         return jsonify({"ok": True, "user": result}), 201
 
     @app.route("/api/users/<int:user_id>", methods=["PUT", "DELETE"])
@@ -549,16 +522,13 @@ def register_routes(app: Flask) -> None:
                 delete_user(user_id)
             except ValueError as exc:
                 return jsonify({"ok": False, "message": str(exc)}), 400
-            hub.broadcast("users", users_snapshot())
-            hub.broadcast("engineers", engineers_snapshot())
-            hub.broadcast("settings", settings_snapshot())
+            broadcast_user_state(include_settings=True)
             return jsonify({"ok": True})
         try:
             result = update_user(user_id, request.get_json(silent=True) or {})
         except ValueError as exc:
             return jsonify({"ok": False, "message": str(exc)}), 400
-        hub.broadcast("users", users_snapshot())
-        hub.broadcast("engineers", engineers_snapshot())
+        broadcast_user_state()
         return jsonify({"ok": True, "user": result})
 
     @app.route("/api/work-orders", methods=["GET", "POST"])
@@ -576,9 +546,7 @@ def register_routes(app: Flask) -> None:
             result = create_work_order(request.get_json(silent=True) or {}, actor=user)
         except ValueError as exc:
             return jsonify({"ok": False, "message": str(exc)}), 400
-        hub.broadcast("work_orders", work_orders_snapshot())
-        hub.broadcast("dashboard", dashboard_snapshot())
-        hub.broadcast("reports", reports_snapshot())
+        broadcast_work_order_state()
         return jsonify({"ok": True, "work_order": result}), 201
 
     @app.route("/api/dispatch-candidates")
@@ -598,14 +566,10 @@ def register_routes(app: Flask) -> None:
                 result = update_work_order(order_id, request.get_json(silent=True) or {}, actor=current_user())
             except ValueError as exc:
                 return jsonify({"ok": False, "message": str(exc)}), 400
-            hub.broadcast("work_orders", work_orders_snapshot())
-            hub.broadcast("dashboard", dashboard_snapshot())
-            hub.broadcast("reports", reports_snapshot())
+            broadcast_work_order_state()
             return jsonify({"ok": True, "work_order": result})
         delete_work_order(order_id)
-        hub.broadcast("work_orders", work_orders_snapshot())
-        hub.broadcast("dashboard", dashboard_snapshot())
-        hub.broadcast("reports", reports_snapshot())
+        broadcast_work_order_state()
         return jsonify({"ok": True})
 
     @app.route("/api/work-orders/<int:order_id>/accept", methods=["POST"])
@@ -616,8 +580,8 @@ def register_routes(app: Flask) -> None:
             result = engineer_accept_work_order(order_id, current_user())
         except ValueError as exc:
             return jsonify({"ok": False, "message": str(exc)}), 400
-        hub.broadcast("work_orders", work_orders_snapshot())
-        hub.broadcast("reports", reports_snapshot())
+        broadcast_named("work_orders", work_orders_snapshot())
+        broadcast_named("reports", reports_snapshot())
         return jsonify({"ok": True, "work_order": result})
 
     @app.route("/api/work-orders/<int:order_id>/complete", methods=["POST"])
@@ -629,8 +593,8 @@ def register_routes(app: Flask) -> None:
             result = engineer_complete_work_order(order_id, current_user(), str(payload.get("completion_note", "")))
         except ValueError as exc:
             return jsonify({"ok": False, "message": str(exc)}), 400
-        hub.broadcast("work_orders", work_orders_snapshot())
-        hub.broadcast("reports", reports_snapshot())
+        broadcast_named("work_orders", work_orders_snapshot())
+        broadcast_named("reports", reports_snapshot())
         return jsonify({"ok": True, "work_order": result})
 
     @app.route("/api/alerts")
@@ -647,8 +611,7 @@ def register_routes(app: Flask) -> None:
             result = update_alert_feedback(alert_id, str(payload.get("confirmed_label", "")))
         except ValueError as exc:
             return jsonify({"ok": False, "message": str(exc)}), 400
-        hub.broadcast("alerts", alerts_snapshot(limit=50, sort_by="time"))
-        hub.broadcast("reports", reports_snapshot())
+        broadcast_alert_state()
         return jsonify({"ok": True, "alert": result})
 
     @app.route("/api/labeled-samples")
@@ -682,9 +645,7 @@ def register_routes(app: Flask) -> None:
     @app.route("/api/training", methods=["GET", "POST"])
     @login_required
     def api_training():
-        global trainer
-        if trainer is None:
-            trainer = ContinuousTrainingService(app)
+        trainer = runtime_services.trainer_service(app)
         if request.method == "POST":
             if session.get("role") not in {"super_admin", "sub_admin"}:
                 return jsonify({"ok": False, "message": "权限不足"}), 403
@@ -701,29 +662,27 @@ def register_routes(app: Flask) -> None:
                 trainer.stop()
             else:
                 return jsonify({"ok": False, "message": "无效训练操作。"}), 400
-            hub.broadcast("settings", settings_snapshot())
+            broadcast_settings_state()
         return jsonify({"ok": True, "status": trainer.status()})
 
     @app.route("/api/simulator", methods=["GET", "POST"])
     @login_required
     def api_simulator():
-        global simulator
+        simulator = runtime_services.simulator
         if request.method == "POST":
             if session.get("role") not in {"super_admin", "sub_admin"}:
                 return jsonify({"ok": False, "message": "权限不足"}), 403
             payload = request.get_json(silent=True) or {}
             action = payload.get("action", "").strip().lower()
-            if simulator is None:
-                simulator = SimulationModule(app)
+            simulator = runtime_services.simulator_service(app)
             if action == "start":
                 simulator.start()
             elif action == "stop":
                 simulator.stop()
             else:
                 return jsonify({"ok": False, "message": "无效操作。"}), 400
-            hub.broadcast("settings", settings_snapshot())
-            hub.broadcast("dashboard", dashboard_snapshot())
-            hub.broadcast("devices", devices_snapshot())
+            broadcast_settings_state()
+            broadcast_device_state()
         return jsonify(
             {
                 "ok": True,
@@ -737,9 +696,7 @@ def register_routes(app: Flask) -> None:
     @login_required
     @roles_required("super_admin", "sub_admin")
     def api_mqtt():
-        global mqtt_gateway
-        if mqtt_gateway is None:
-            mqtt_gateway = MqttGateway(app)
+        mqtt_gateway = runtime_services.mqtt_service(app)
         if request.method == "POST":
             payload = request.get_json(silent=True) or {}
             action = str(payload.get("action", "")).strip().lower()
@@ -758,9 +715,7 @@ def register_routes(app: Flask) -> None:
     @login_required
     @roles_required("super_admin", "sub_admin")
     def api_drift():
-        global drift_monitor
-        if drift_monitor is None:
-            drift_monitor = create_drift_monitor(app)
+        drift_monitor = runtime_services.drift_monitor_service(app)
         if request.method == "POST":
             payload = request.get_json(silent=True) or {}
             action = str(payload.get("action", "check")).strip().lower()
