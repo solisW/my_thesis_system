@@ -1,6 +1,53 @@
 const { createApp, nextTick } = Vue;
 
 const API_BASE = window.API_BASE || "http://127.0.0.1:5000";
+const MAP_COORD_SYSTEM = window.MAP_COORD_SYSTEM || "wgs84";
+const AMAP_TILE_URL = window.AMAP_TILE_URL || "https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}";
+const AMAP_TILE_SUBDOMAINS = window.AMAP_TILE_SUBDOMAINS || ["1", "2", "3", "4"];
+const MAP_CENTER = [31.2304, 121.4737];
+const MAP_TILE_ERROR_LIMIT = 6;
+
+function outsideChina(lat, lng) {
+    return lng < 72.004 || lng > 137.8347 || lat < 0.8293 || lat > 55.8271;
+}
+
+function transformLat(x, y) {
+    let ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
+    ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+    ret += (20.0 * Math.sin(y * Math.PI) + 40.0 * Math.sin(y / 3.0 * Math.PI)) * 2.0 / 3.0;
+    ret += (160.0 * Math.sin(y / 12.0 * Math.PI) + 320 * Math.sin(y * Math.PI / 30.0)) * 2.0 / 3.0;
+    return ret;
+}
+
+function transformLng(x, y) {
+    let ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
+    ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+    ret += (20.0 * Math.sin(x * Math.PI) + 40.0 * Math.sin(x / 3.0 * Math.PI)) * 2.0 / 3.0;
+    ret += (150.0 * Math.sin(x / 12.0 * Math.PI) + 300.0 * Math.sin(x / 30.0 * Math.PI)) * 2.0 / 3.0;
+    return ret;
+}
+
+function toAmapCoordinate(lat, lng) {
+    if (MAP_COORD_SYSTEM === "gcj02" || outsideChina(lat, lng)) return [lat, lng];
+    const a = 6378245.0;
+    const ee = 0.00669342162296594323;
+    let dLat = transformLat(lng - 105.0, lat - 35.0);
+    let dLng = transformLng(lng - 105.0, lat - 35.0);
+    const radLat = lat / 180.0 * Math.PI;
+    let magic = Math.sin(radLat);
+    magic = 1 - ee * magic * magic;
+    const sqrtMagic = Math.sqrt(magic);
+    dLat = (dLat * 180.0) / ((a * (1 - ee)) / (magic * sqrtMagic) * Math.PI);
+    dLng = (dLng * 180.0) / (a / sqrtMagic * Math.cos(radLat) * Math.PI);
+    return [lat + dLat, lng + dLng];
+}
+
+function mapPointCoordinate(point) {
+    const lat = Number(point.display_latitude ?? point.latitude);
+    const lng = Number(point.display_longitude ?? point.longitude);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+    return toAmapCoordinate(lat, lng);
+}
 
 const pageMeta = [
     { key: "dashboard", label: "综合态势", hint: "实时监控", roles: ["super_admin", "sub_admin", "engineer"] },
@@ -86,6 +133,8 @@ createApp({
             charts: {},
             map: null,
             mapLayer: null,
+            mapTileLayer: null,
+            mapTileErrors: 0,
         };
     },
     computed: {
@@ -530,23 +579,37 @@ createApp({
             }
             node.classList.remove("map-native");
             if (!this.map) {
-                this.map = L.map(node, { zoomControl: false }).setView([31.2304, 121.4737], 12);
+                node.innerHTML = "";
+                this.mapTileErrors = 0;
+                this.map = L.map(node, { zoomControl: false, attributionControl: true }).setView(MAP_CENTER, 12);
                 L.control.zoom({ position: "bottomright" }).addTo(this.map);
-                const tiles = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                this.mapTileLayer = L.tileLayer(AMAP_TILE_URL, {
                     maxZoom: 18,
-                    attribution: "&copy; OpenStreetMap",
+                    minZoom: 3,
+                    subdomains: AMAP_TILE_SUBDOMAINS,
+                    attribution: "AMap",
                 });
-                tiles.on("tileerror", () => node.classList.add("map-fallback"));
-                tiles.on("load", () => node.classList.remove("map-fallback"));
-                tiles.addTo(this.map);
+                this.mapTileLayer.on("tileerror", () => {
+                    this.mapTileErrors += 1;
+                    node.classList.add("map-fallback");
+                    if (this.mapTileErrors >= MAP_TILE_ERROR_LIMIT) {
+                        this.destroyLeafletMap(node);
+                        this.renderFallbackMap(node, points);
+                    }
+                });
+                this.mapTileLayer.on("load", () => {
+                    this.mapTileErrors = 0;
+                    node.classList.remove("map-fallback");
+                });
+                this.mapTileLayer.addTo(this.map);
             }
             if (this.mapLayer) this.map.removeLayer(this.mapLayer);
             this.mapLayer = L.layerGroup().addTo(this.map);
             const bounds = [];
             points.forEach((point) => {
-                const lat = Number(point.display_latitude ?? point.latitude);
-                const lng = Number(point.display_longitude ?? point.longitude);
-                if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+                const coord = mapPointCoordinate(point);
+                if (!coord) return;
+                const [lat, lng] = coord;
                 bounds.push([lat, lng]);
                 const color = point.anomaly ? "#dc2626" : point.status === "online" ? "#059669" : "#64748b";
                 L.circleMarker([lat, lng], {
@@ -560,26 +623,35 @@ createApp({
             if (bounds.length) {
                 this.map.fitBounds(bounds, { padding: [28, 28], maxZoom: 14 });
             } else {
-                this.map.setView([31.2304, 121.4737], 11);
+                this.map.setView(MAP_CENTER, 11);
             }
             setTimeout(() => this.map?.invalidateSize(), 80);
         },
+        destroyLeafletMap(node) {
+            if (this.map) this.map.remove();
+            this.map = null;
+            this.mapLayer = null;
+            this.mapTileLayer = null;
+            this.mapTileErrors = 0;
+            if (node) node.innerHTML = "";
+        },
         renderFallbackMap(node, points) {
+            if (this.map) this.destroyLeafletMap(node);
             node.classList.add("map-fallback", "map-native");
             node.innerHTML = "";
             const validPoints = points
-                .map((point) => ({
-                    ...point,
-                    lat: Number(point.display_latitude ?? point.latitude),
-                    lng: Number(point.display_longitude ?? point.longitude),
-                }))
-                .filter((point) => Number.isFinite(point.lat) && Number.isFinite(point.lng));
+                .map((point) => {
+                    const coord = mapPointCoordinate(point);
+                    if (!coord) return null;
+                    return { ...point, lat: coord[0], lng: coord[1] };
+                })
+                .filter(Boolean);
             const lats = validPoints.map((point) => point.lat);
             const lngs = validPoints.map((point) => point.lng);
-            const minLat = Math.min(...lats, 31.18);
-            const maxLat = Math.max(...lats, 31.28);
-            const minLng = Math.min(...lngs, 121.39);
-            const maxLng = Math.max(...lngs, 121.55);
+            const minLat = Math.min(...lats, MAP_CENTER[0] - 0.05);
+            const maxLat = Math.max(...lats, MAP_CENTER[0] + 0.05);
+            const minLng = Math.min(...lngs, MAP_CENTER[1] - 0.08);
+            const maxLng = Math.max(...lngs, MAP_CENTER[1] + 0.08);
             const layer = document.createElement("div");
             layer.className = "native-map-layer";
             layer.innerHTML = '<div class="native-map-title">设备地理态势</div><div class="native-map-subtitle">离线底图模式 · 设备坐标仍可展示</div>';
