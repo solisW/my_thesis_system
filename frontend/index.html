@@ -3,15 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
     <title>物联网智能燃气表数据异常检测系统</title>
-    <link rel="stylesheet" href="./vendor/leaflet.css">
-    <link rel="stylesheet" href="./src/styles.css">
+    <link rel="stylesheet" href="./vendor/leaflet.css?v=20260518">
+    <link rel="stylesheet" href="./src/styles.css?v=20260518">
 </head>
 <body>
-    <div id="app"></div>
-    <script src="./vendor/vue.global.prod.js"></script>
-    <script src="./vendor/echarts.min.js"></script>
-    <script src="./vendor/leaflet.js"></script>
-    <script src="./src/main.js"></script>
+    <div id="app">
+        <main class="boot-fallback">
+            <section>
+                <h1>智能燃气表数据异常检测系统</h1>
+                <p>前端正在启动，请稍候。</p>
+                <p class="boot-hint">如果长时间停留在此页面，请确认后端 http://127.0.0.1:5000 已启动，并刷新页面。</p>
+            </section>
+        </main>
+    </div>
+    <script>
+        window.renderBootError = function (message) {
+            var app = document.getElementById("app");
+            if (!app || app.dataset.mounted === "1") return;
+            app.innerHTML = '<main class="boot-fallback"><section><h1>前端启动失败</h1><p>' +
+                String(message || "脚本加载异常") +
+                '</p><p class="boot-hint">请确认所有服务已启动，或运行 system_health_check.bat 查看完整诊断。</p></section></main>';
+        };
+        window.setTimeout(function () {
+            var app = document.getElementById("app");
+            if (app && app.dataset.mounted !== "1") {
+                window.renderBootError("Vue 应用未完成挂载。请刷新页面，或检查前端服务是否返回最新资源。");
+            }
+        }, 8000);
+    </script>
+    <script src="./vendor/vue.global.prod.js?v=20260518"></script>
+    <script src="./vendor/echarts.min.js?v=20260518"></script>
+    <script src="./vendor/leaflet.js?v=20260518"></script>
+    <script src="./src/config.js?v=20260518"></script>
+    <script src="./src/api.js?v=20260518"></script>
+    <script src="./src/formatters.js?v=20260518"></script>
+    <script src="./src/map-utils.js?v=20260518"></script>
+    <script src="./src/main.js?v=20260518"></script>
 </body>
 </html>

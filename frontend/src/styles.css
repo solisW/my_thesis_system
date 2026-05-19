@@ -20,8 +20,29 @@
 }
 
 * { box-sizing: border-box; }
-body { margin: 0; min-width: 320px; background: var(--bg); }
+html { scroll-behavior: smooth; }
+body { margin: 0; min-width: 320px; background: var(--bg); text-rendering: optimizeLegibility; }
 button, input, select, textarea { font: inherit; }
+
+.boot-fallback {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: var(--bg);
+    color: var(--ink);
+}
+.boot-fallback section {
+    width: min(520px, 100%);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(255,255,255,.86);
+    padding: 26px;
+    box-shadow: var(--shadow);
+}
+.boot-fallback h1 { margin: 0 0 12px; font-size: 28px; letter-spacing: 0; }
+.boot-fallback p { margin: 8px 0 0; color: var(--muted); line-height: 1.65; }
+.boot-hint { font-size: 13px; }
 
 button {
     border: 1px solid #111;
@@ -32,9 +53,9 @@ button {
     cursor: pointer;
     font-weight: 700;
     line-height: 1.2;
-    transition: background .16s ease, border-color .16s ease, transform .16s ease;
+    transition: background .16s ease, border-color .16s ease, color .16s ease, transform .16s ease, box-shadow .16s ease;
 }
-button:hover { background: #2a2a27; transform: translateY(-1px); }
+button:hover { background: #2a2a27; transform: translateY(-1px); box-shadow: 0 10px 24px rgba(17,17,17,.12); }
 button:disabled { opacity: .58; cursor: wait; transform: none; }
 button.ghost { background: transparent; color: #111; border-color: var(--line); }
 button.ghost:hover { background: #f0f1ec; }
@@ -217,7 +238,31 @@ td span { color: var(--muted); font-size: 13px; }
 .sidebar button.active { background: #f3f3ee; color: #111; }
 .sidebar button.active small { color: #5f655e; }
 
-.content { min-width: 0; padding: 18px; }
+.content { min-width: 0; padding: 18px; position: relative; transition: opacity .18s ease; }
+.content.loading { opacity: .92; }
+.loading-bar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    height: 3px;
+    margin: -6px 0 10px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(15,118,110,.12);
+}
+.loading-bar::before {
+    content: "";
+    display: block;
+    width: 42%;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, transparent, var(--brand), transparent);
+    animation: loading-slide 1s ease-in-out infinite;
+}
+@keyframes loading-slide {
+    from { transform: translateX(-110%); }
+    to { transform: translateX(250%); }
+}
 .topbar {
     display: flex;
     justify-content: space-between;
@@ -263,6 +308,12 @@ td span { color: var(--muted); font-size: 13px; }
     padding: 15px;
     box-shadow: var(--shadow);
     backdrop-filter: blur(12px);
+    animation: panel-in .22s ease both;
+}
+.panel:hover, .mini-card:hover, .stat:hover { border-color: #cfd2ca; box-shadow: 0 22px 54px rgba(18, 20, 18, .09); }
+@keyframes panel-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 .stat { min-height: 110px; position: relative; overflow: hidden; }
 .stat::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 3px; background: linear-gradient(90deg, #111, var(--brand)); }
@@ -405,7 +456,7 @@ td span { color: var(--muted); font-size: 13px; }
 .report-summary span { color: var(--muted); font-size: 13px; font-weight: 750; }
 .report-summary strong { display: block; margin-top: 6px; font-size: 27px; letter-spacing: 0; }
 
-.table-wrap { overflow-x: auto; }
+.table-wrap { overflow-x: auto; scrollbar-width: thin; }
 .compact-table { margin-top: 10px; max-height: 360px; overflow: auto; border: 1px solid var(--line); border-radius: 8px; }
 .pill { display: inline-block; margin: 0 6px 5px 0; padding: 4px 9px; border-radius: 999px; background: #eceee8; color: #4e544d; font-size: 12px; font-weight: 800; }
 .pill.online { background: #e2f4ef; color: #0f766e; }
@@ -435,4 +486,14 @@ td span { color: var(--muted); font-size: 13px; }
     .map-panel { grid-column: span 1; }
     .map { height: 360px; }
     .login-copy h1 { font-size: 42px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+    }
 }

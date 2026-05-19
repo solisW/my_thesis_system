@@ -1,0 +1,79 @@
+<mxfile host="Electron" agent="Codex">
+  <diagram name="异常告警表E-R图" id="0">
+    <mxGraphModel dx="1201" dy="836" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1280" pageHeight="780" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=20;" value="异常告警表" vertex="1">
+          <mxGeometry height="55" width="160" x="560" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="4" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=16;" value="&lt;u&gt;告警ID&lt;/u&gt;" vertex="1">
+          <mxGeometry height="52" width="130" x="120" y="365" as="geometry" />
+        </mxCell>
+        <mxCell id="5" edge="1" parent="1" source="3" style="endArrow=none;html=1;rounded=0;strokeWidth=2;fontSize=14;" target="4" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="6" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=16;" value="&lt;u&gt;设备ID&lt;/u&gt;" vertex="1">
+          <mxGeometry height="52" width="130" x="185" y="235" as="geometry" />
+        </mxCell>
+        <mxCell id="7" edge="1" parent="1" source="3" style="endArrow=none;html=1;rounded=0;strokeWidth=2;fontSize=14;" target="6" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="8" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=16;" value="&lt;u&gt;读数ID&lt;/u&gt;" vertex="1">
+          <mxGeometry height="52" width="130" x="345" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="9" edge="1" parent="1" source="3" style="endArrow=none;html=1;rounded=0;strokeWidth=2;fontSize=14;" target="8" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="10" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=16;" value="告警类型" vertex="1">
+          <mxGeometry height="52" width="130" x="545" y="115" as="geometry" />
+        </mxCell>
+        <mxCell id="11" edge="1" parent="1" source="3" style="endArrow=none;html=1;rounded=0;strokeWidth=2;fontSize=14;" target="10" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="12" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=16;" value="告警描述" vertex="1">
+          <mxGeometry height="52" width="130" x="750" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="13" edge="1" parent="1" source="3" style="endArrow=none;html=1;rounded=0;strokeWidth=2;fontSize=14;" target="12" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="14" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=16;" value="异常分数" vertex="1">
+          <mxGeometry height="52" width="130" x="930" y="235" as="geometry" />
+        </mxCell>
+        <mxCell id="15" edge="1" parent="1" source="3" style="endArrow=none;html=1;rounded=0;strokeWidth=2;fontSize=14;" target="14" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="16" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=16;" value="检测阈值" vertex="1">
+          <mxGeometry height="52" width="130" x="1010" y="365" as="geometry" />
+        </mxCell>
+        <mxCell id="17" edge="1" parent="1" source="3" style="endArrow=none;html=1;rounded=0;strokeWidth=2;fontSize=14;" target="16" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="18" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=16;" value="严重等级" vertex="1">
+          <mxGeometry height="52" width="130" x="930" y="505" as="geometry" />
+        </mxCell>
+        <mxCell id="19" edge="1" parent="1" source="3" style="endArrow=none;html=1;rounded=0;strokeWidth=2;fontSize=14;" target="18" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="20" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=16;" value="处理状态" vertex="1">
+          <mxGeometry height="52" width="130" x="750" y="610" as="geometry" />
+        </mxCell>
+        <mxCell id="21" edge="1" parent="1" source="3" style="endArrow=none;html=1;rounded=0;strokeWidth=2;fontSize=14;" target="20" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="22" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=16;" value="确认标签" vertex="1">
+          <mxGeometry height="52" width="130" x="545" y="635" as="geometry" />
+        </mxCell>
+        <mxCell id="23" edge="1" parent="1" source="3" style="endArrow=none;html=1;rounded=0;strokeWidth=2;fontSize=14;" target="22" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="24" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=16;" value="模型版本" vertex="1">
+          <mxGeometry height="52" width="130" x="340" y="595" as="geometry" />
+        </mxCell>
+        <mxCell id="25" edge="1" parent="1" source="3" style="endArrow=none;html=1;rounded=0;strokeWidth=2;fontSize=14;" target="24" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

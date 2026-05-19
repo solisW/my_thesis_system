@@ -1,113 +1,13 @@
+try {
 const { createApp, nextTick } = Vue;
-
-const API_BASE = window.API_BASE || "http://127.0.0.1:5000";
-const MAP_COORD_SYSTEM = window.MAP_COORD_SYSTEM || "wgs84";
-const AMAP_TILE_URL = window.AMAP_TILE_URL || "https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}";
-const AMAP_TILE_SUBDOMAINS = window.AMAP_TILE_SUBDOMAINS || ["1", "2", "3", "4"];
-const MAP_CENTER = [31.2304, 121.4737];
-const MAP_TILE_ERROR_LIMIT = 6;
-
-function outsideChina(lat, lng) {
-    return lng < 72.004 || lng > 137.8347 || lat < 0.8293 || lat > 55.8271;
+const { API_BASE, AMAP_TILE_URL, AMAP_TILE_SUBDOMAINS, MAP_CENTER, MAP_TILE_ERROR_LIMIT } = window.AppConfig || {};
+const { emptyState, userFormDefaults, workOrderDefaults, numberText, dateText, shortDateText } = window.AppFormatters || {};
+const { mapPointCoordinate } = window.MapUtils || {};
+if (!window.Vue || !window.echarts || !window.L || !window.AppConfig || !window.AppPages || !window.ApiClient || !window.AppFormatters || !window.MapUtils) {
+    throw new Error("前端依赖未完整加载，请检查 frontend/vendor 和 frontend/src 资源。");
 }
-
-function transformLat(x, y) {
-    let ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
-    ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
-    ret += (20.0 * Math.sin(y * Math.PI) + 40.0 * Math.sin(y / 3.0 * Math.PI)) * 2.0 / 3.0;
-    ret += (160.0 * Math.sin(y / 12.0 * Math.PI) + 320 * Math.sin(y * Math.PI / 30.0)) * 2.0 / 3.0;
-    return ret;
-}
-
-function transformLng(x, y) {
-    let ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
-    ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
-    ret += (20.0 * Math.sin(x * Math.PI) + 40.0 * Math.sin(x / 3.0 * Math.PI)) * 2.0 / 3.0;
-    ret += (150.0 * Math.sin(x / 12.0 * Math.PI) + 300.0 * Math.sin(x / 30.0 * Math.PI)) * 2.0 / 3.0;
-    return ret;
-}
-
-function toAmapCoordinate(lat, lng) {
-    if (MAP_COORD_SYSTEM === "gcj02" || outsideChina(lat, lng)) return [lat, lng];
-    const a = 6378245.0;
-    const ee = 0.00669342162296594323;
-    let dLat = transformLat(lng - 105.0, lat - 35.0);
-    let dLng = transformLng(lng - 105.0, lat - 35.0);
-    const radLat = lat / 180.0 * Math.PI;
-    let magic = Math.sin(radLat);
-    magic = 1 - ee * magic * magic;
-    const sqrtMagic = Math.sqrt(magic);
-    dLat = (dLat * 180.0) / ((a * (1 - ee)) / (magic * sqrtMagic) * Math.PI);
-    dLng = (dLng * 180.0) / (a / sqrtMagic * Math.cos(radLat) * Math.PI);
-    return [lat + dLat, lng + dLng];
-}
-
-function mapPointCoordinate(point) {
-    const lat = Number(point.display_latitude ?? point.latitude);
-    const lng = Number(point.display_longitude ?? point.longitude);
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-    return toAmapCoordinate(lat, lng);
-}
-
-const pageMeta = [
-    { key: "dashboard", label: "综合态势", hint: "实时监控", roles: ["super_admin", "sub_admin", "engineer"] },
-    { key: "devices", label: "设备管理", hint: "接入与状态", roles: ["super_admin", "sub_admin"] },
-    { key: "alerts", label: "异常告警", hint: "模型研判", roles: ["super_admin", "sub_admin", "engineer"] },
-    { key: "work_orders", label: "工单闭环", hint: "派单处置", roles: ["super_admin", "sub_admin", "engineer"] },
-    { key: "engineers", label: "工程师", hint: "在线与负载", roles: ["super_admin", "sub_admin"] },
-    { key: "history", label: "历史数据", hint: "时序追踪", roles: ["super_admin", "sub_admin", "engineer"] },
-    { key: "reports", label: "统计报表", hint: "运营分析", roles: ["super_admin", "sub_admin", "engineer"] },
-    { key: "settings", label: "系统设置", hint: "模型与服务", roles: ["super_admin", "sub_admin"] },
-    { key: "users", label: "用户权限", hint: "账号体系", roles: ["super_admin"] },
-];
-
-function emptyState() {
-    return {
-        dashboard: null,
-        devices: [],
-        alerts: [],
-        workOrders: [],
-        engineers: [],
-        users: [],
-        reports: null,
-        settings: null,
-        training: null,
-        simulator: null,
-        mqtt: null,
-        drift: null,
-        history: null,
-        reconstruction: null,
-        labeledSamples: [],
-    };
-}
-
-function userFormDefaults() {
-    return {
-        id: "",
-        username: "",
-        full_name: "",
-        password: "",
-        role: "engineer",
-        is_active: true,
-        employee_no: "",
-        phone: "",
-        region: "",
-        address: "",
-    };
-}
-
-function workOrderDefaults() {
-    return {
-        id: "",
-        title: "",
-        description: "",
-        region: "",
-        priority: "medium",
-        status: "pending",
-        device_id: "",
-        engineer_id: "",
-    };
-}
+const pageMeta = window.AppPages;
+const api = new window.ApiClient(API_BASE);
 
 function chartGradient(color) {
     return new echarts.graphic.LinearGradient(0, 0, 0, 1, [
@@ -116,7 +16,7 @@ function chartGradient(color) {
     ]);
 }
 
-createApp({
+const appInstance = createApp({
     data() {
         return {
             apiBase: API_BASE,
@@ -125,6 +25,7 @@ createApp({
             loginForm: { username: "", password: "" },
             message: "",
             busy: false,
+            pageLoading: false,
             realtimeText: "连接中",
             state: emptyState(),
             filters: { alertSort: "time", meterId: "" },
@@ -135,6 +36,7 @@ createApp({
             mapLayer: null,
             mapTileLayer: null,
             mapTileErrors: 0,
+            loadRequestId: 0,
         };
     },
     computed: {
@@ -194,14 +96,7 @@ createApp({
             }).catch(() => null);
         },
         async request(path, options = {}) {
-            const response = await fetch(`${this.apiBase}${path}`, {
-                credentials: "include",
-                headers: { "Content-Type": "application/json", ...(options.headers || {}) },
-                ...options,
-            });
-            const payload = await response.json().catch(() => ({}));
-            if (!response.ok) throw new Error(payload.message || `请求失败：${response.status}`);
-            return payload;
+            return api.request(path, options);
         },
         async loadSession() {
             try {
@@ -256,51 +151,94 @@ createApp({
         },
         async loadPage() {
             if (!this.user) return;
-            this.busy = true;
+            const requestId = ++this.loadRequestId;
+            const page = this.page;
+            this.pageLoading = true;
             this.message = "";
             try {
-                if (this.page === "dashboard") {
-                    this.state.dashboard = await this.request("/api/dashboard");
+                if (page === "dashboard") {
+                    const [dashboard, workOrders] = await Promise.all([
+                        this.request("/api/dashboard"),
+                        this.request("/api/work-orders"),
+                    ]);
+                    if (requestId !== this.loadRequestId) return;
+                    this.state.dashboard = dashboard;
                     this.state.alerts = this.state.dashboard.alerts || [];
-                    this.state.workOrders = await this.request("/api/work-orders");
+                    this.state.workOrders = workOrders;
                     this.stabilizeVisuals(() => this.renderDashboardVisuals());
                 }
-                if (this.page === "devices") this.state.devices = await this.request("/api/devices");
-                if (this.page === "alerts") {
-                    this.state.alerts = await this.request(`/api/alerts?limit=50&sort_by=${encodeURIComponent(this.filters.alertSort)}`);
-                    if (this.canAdmin) this.state.labeledSamples = await this.request("/api/labeled-samples");
+                if (page === "devices") {
+                    const devices = await this.request("/api/devices");
+                    if (requestId !== this.loadRequestId) return;
+                    this.state.devices = devices;
                 }
-                if (this.page === "work_orders") {
+                if (page === "alerts") {
+                    const [alerts, labeledSamples] = await Promise.all([
+                        this.request(`/api/alerts?limit=50&sort_by=${encodeURIComponent(this.filters.alertSort)}`),
+                        this.canAdmin ? this.request("/api/labeled-samples") : Promise.resolve(this.state.labeledSamples),
+                    ]);
+                    if (requestId !== this.loadRequestId) return;
+                    this.state.alerts = alerts;
+                    if (this.canAdmin) this.state.labeledSamples = labeledSamples;
+                }
+                if (page === "work_orders") {
+                    const [devices, engineers, workOrders] = await Promise.all([
+                        this.canAdmin ? this.request("/api/devices") : Promise.resolve(this.state.devices),
+                        this.canAdmin ? this.request("/api/engineers") : Promise.resolve(this.state.engineers),
+                        this.request("/api/work-orders"),
+                    ]);
+                    if (requestId !== this.loadRequestId) return;
                     if (this.canAdmin) {
-                        this.state.devices = await this.request("/api/devices");
-                        this.state.engineers = await this.request("/api/engineers");
+                        this.state.devices = devices;
+                        this.state.engineers = engineers;
                     }
-                    this.state.workOrders = await this.request("/api/work-orders");
+                    this.state.workOrders = workOrders;
                 }
-                if (this.page === "engineers") this.state.engineers = await this.request("/api/engineers");
-                if (this.page === "users") {
-                    this.state.users = await this.request("/api/users");
-                    this.state.engineers = await this.request("/api/engineers");
+                if (page === "engineers") {
+                    const engineers = await this.request("/api/engineers");
+                    if (requestId !== this.loadRequestId) return;
+                    this.state.engineers = engineers;
                 }
-                if (this.page === "history") {
-                    this.state.devices = await this.request("/api/devices");
-                    await this.loadHistory();
+                if (page === "users") {
+                    const [users, engineers] = await Promise.all([
+                        this.request("/api/users"),
+                        this.request("/api/engineers"),
+                    ]);
+                    if (requestId !== this.loadRequestId) return;
+                    this.state.users = users;
+                    this.state.engineers = engineers;
                 }
-                if (this.page === "reports") {
-                    this.state.reports = await this.request("/api/reports");
+                if (page === "history") {
+                    const devices = await this.request("/api/devices");
+                    if (requestId !== this.loadRequestId) return;
+                    this.state.devices = devices;
+                    await this.loadHistory(requestId);
+                }
+                if (page === "reports") {
+                    const reports = await this.request("/api/reports");
+                    if (requestId !== this.loadRequestId) return;
+                    this.state.reports = reports;
                     this.stabilizeVisuals(() => this.renderReportChart());
                 }
-                if (this.page === "settings") {
-                    this.state.settings = await this.request("/api/settings");
-                    this.state.training = (await this.request("/api/training")).status;
-                    this.state.simulator = await this.request("/api/simulator");
-                    this.state.mqtt = (await this.request("/api/mqtt")).status;
-                    this.state.drift = (await this.request("/api/drift")).status;
+                if (page === "settings") {
+                    const [settings, training, simulator, mqtt, drift] = await Promise.all([
+                        this.request("/api/settings"),
+                        this.request("/api/training"),
+                        this.request("/api/simulator"),
+                        this.request("/api/mqtt"),
+                        this.request("/api/drift"),
+                    ]);
+                    if (requestId !== this.loadRequestId) return;
+                    this.state.settings = settings;
+                    this.state.training = training.status;
+                    this.state.simulator = simulator;
+                    this.state.mqtt = mqtt.status;
+                    this.state.drift = drift.status;
                 }
             } catch (error) {
-                this.message = error.message;
+                if (requestId === this.loadRequestId) this.message = error.message;
             } finally {
-                this.busy = false;
+                if (requestId === this.loadRequestId) this.pageLoading = false;
             }
         },
         connectSocket(path) {
@@ -355,14 +293,13 @@ createApp({
             return device?.latest_reading || {};
         },
         number(value, digits = 2) {
-            const parsed = Number(value);
-            return Number.isFinite(parsed) ? parsed.toFixed(digits) : "-";
+            return numberText(value, digits);
         },
         date(value) {
-            return value ? new Date(value).toLocaleString("zh-CN", { hour12: false }) : "-";
+            return dateText(value);
         },
         shortDate(value) {
-            return value ? new Date(value).toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false }) : "-";
+            return shortDateText(value);
         },
         roleLabel(role) {
             return { super_admin: "主管理员", sub_admin: "管理员", admin: "管理员", engineer: "工程师" }[role] || role || "-";
@@ -497,10 +434,15 @@ createApp({
             });
             await this.loadPage();
         },
-        async loadHistory() {
+        async loadHistory(requestId = this.loadRequestId) {
             const suffix = this.filters.meterId ? `?meter_id=${encodeURIComponent(this.filters.meterId)}` : "";
-            this.state.history = await this.request(`/api/history${suffix}`);
-            this.state.reconstruction = await this.request(`/api/reconstruction${suffix}`);
+            const [history, reconstruction] = await Promise.all([
+                this.request(`/api/history${suffix}`),
+                this.request(`/api/reconstruction${suffix}`),
+            ]);
+            if (requestId !== this.loadRequestId) return;
+            this.state.history = history;
+            this.state.reconstruction = reconstruction;
             await nextTick();
             this.stabilizeVisuals(() => this.renderHistoryCharts());
         },
@@ -784,12 +726,13 @@ createApp({
             </nav>
         </aside>
 
-        <section class="content">
+        <section class="content" :class="{loading: pageLoading}">
             <header class="topbar">
                 <div><p class="eyebrow">Smart Gas Monitoring</p><h1>{{ currentPage.label }}</h1></div>
                 <div class="topbar-actions"><span class="live-dot" :class="{muted: realtimeText !== '实时在线'}">{{ realtimeText }}</span><span class="user-chip">{{ user.full_name }} · {{ roleLabel(user.role) }}</span><button class="ghost" @click="logout">退出</button></div>
             </header>
 
+            <div v-if="pageLoading" class="loading-bar" aria-hidden="true"></div>
             <p v-if="message" class="error-text">{{ message }}</p>
 
             <section v-if="page === 'dashboard' && state.dashboard" class="dashboard-grid">
@@ -839,4 +782,12 @@ createApp({
         </section>
     </main>
     `,
-}).mount("#app");
+});
+
+appInstance.mount("#app");
+document.getElementById("app")?.setAttribute("data-mounted", "1");
+} catch (error) {
+    console.error(error);
+    if (window.renderBootError) window.renderBootError(error.message || String(error));
+    else throw error;
+}

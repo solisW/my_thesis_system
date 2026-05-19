@@ -1,0 +1,76 @@
+<mxfile host="Electron" agent="Codex">
+  <diagram name="框架处理顺序图" id="0">
+    <mxGraphModel dx="2184" dy="1520" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1350" pageHeight="760" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=20;spacing=8;" value="页 面 请 求" vertex="1">
+          <mxGeometry height="430" width="80" x="182" y="115" as="geometry" />
+        </mxCell>
+        <mxCell id="4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=18;" value="根据URL匹配请求  Action 控制器" vertex="1">
+          <mxGeometry height="390" width="110" x="487" y="125" as="geometry" />
+        </mxCell>
+        <mxCell id="5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=18;" value="Manager 层 业务调度与事务处理" vertex="1">
+          <mxGeometry height="100" width="360" x="807" y="115" as="geometry" />
+        </mxCell>
+        <mxCell id="6" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=18;" value="Domain / DAO 层 DeviceDao、ReadingDao、AlertDao、WorkOrderDao" vertex="1">
+          <mxGeometry height="90" width="360" x="807" y="305" as="geometry" />
+        </mxCell>
+        <mxCell id="8" edge="1" parent="1" style="endArrow=block;html=1;rounded=0;strokeWidth=2;fontSize=14;" value="页面发送请求">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="262" y="200" as="sourcePoint" />
+            <mxPoint x="487" y="200" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="9" parent="1" style="text;html=1;strokeColor=none;fillColor=none;fontSize=16;" value="请求URL" vertex="1">
+          <mxGeometry height="30" width="120" x="337" y="225" as="geometry" />
+        </mxCell>
+        <mxCell id="10" edge="1" parent="1" style="endArrow=block;html=1;rounded=0;strokeWidth=2;fontSize=14;" value="调用业务层处理">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="597" y="165" as="sourcePoint" />
+            <mxPoint x="807" y="165" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="11" edge="1" parent="1" style="endArrow=block;html=1;rounded=0;strokeWidth=2;dashed=1;fontSize=14;" value="返回结果">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="807" y="205" as="sourcePoint" />
+            <mxPoint x="597" y="205" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="12" edge="1" parent="1" style="endArrow=block;html=1;rounded=0;strokeWidth=2;fontSize=14;" value="调用">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="987" y="215" as="sourcePoint" />
+            <mxPoint x="987" y="305" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="13" edge="1" parent="1" style="endArrow=block;html=1;rounded=0;strokeWidth=2;dashed=1;fontSize=14;" value="返回结果">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1027" y="305" as="sourcePoint" />
+            <mxPoint x="1027" y="215" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="14" edge="1" parent="1" style="endArrow=block;html=1;rounded=0;strokeWidth=2;fontSize=14;entryX=0.175;entryY=0.072;entryDx=0;entryDy=0;entryPerimeter=0;" target="pCg5nUpxw6GcfqnA6G37-16" value="连接数据库">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="957" y="395" as="sourcePoint" />
+            <mxPoint x="957" y="450" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="15" edge="1" parent="1" source="pCg5nUpxw6GcfqnA6G37-16" style="endArrow=block;html=1;rounded=0;strokeWidth=2;dashed=1;fontSize=14;exitX=0.847;exitY=0.09;exitDx=0;exitDy=0;exitPerimeter=0;" value="数据库响应">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1037" y="450" as="sourcePoint" />
+            <mxPoint x="1037" y="395" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="16" edge="1" parent="1" style="endArrow=block;html=1;rounded=0;strokeWidth=2;dashed=1;fontSize=14;" value="返回处理结果">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="487" y="410" as="sourcePoint" />
+            <mxPoint x="262" y="410" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="pCg5nUpxw6GcfqnA6G37-16" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.database;whiteSpace=wrap;" value="&lt;font style=&quot;font-size: 15px;&quot;&gt;数据库&lt;/font&gt;" vertex="1">
+          <mxGeometry height="115" width="120" x="937" y="455" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -3,12 +3,13 @@ from __future__ import annotations
 import json
 import os
 import time
-from functools import wraps
 from pathlib import Path
 
 from flask import Flask, flash, jsonify, redirect, request, session, url_for
 from sqlalchemy.exc import OperationalError
 
+from .application.auth import close_user_session, current_user, login_required, normalized_role, open_user_session, roles_required
+from .application.http import register_cors
 from .application.realtime import (
     broadcast_alert_state,
     broadcast_device_state,
@@ -97,28 +98,6 @@ def create_app() -> Flask:
     return app
 
 
-def register_cors(app: Flask) -> None:
-    allowed_origins = {
-        value.strip()
-        for value in os.getenv(
-            "FRONTEND_ORIGINS",
-            "http://127.0.0.1:5173,http://localhost:5173",
-        ).split(",")
-        if value.strip()
-    }
-
-    @app.after_request
-    def add_cors_headers(response):
-        origin = request.headers.get("Origin")
-        if origin in allowed_origins:
-            response.headers["Access-Control-Allow-Origin"] = origin
-            response.headers["Access-Control-Allow-Credentials"] = "true"
-            response.headers["Vary"] = "Origin"
-            response.headers["Access-Control-Allow-Headers"] = "Content-Type, X-API-Key, X-Carrier-Token"
-            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
-        return response
-
-
 def initialize_database_with_retry(
     app: Flask, retries: int = 6, delay_seconds: float = 1.5
 ) -> None:
@@ -160,60 +139,6 @@ def is_transient_mysql_startup_error(exc: OperationalError) -> bool:
     return "concurrent DDL" in message or "being modified" in message
 
 
-def login_required(view):
-    @wraps(view)
-    def wrapped_view(*args, **kwargs):
-        if "user_id" not in session:
-            if request.path.startswith("/api/"):
-                return jsonify({"ok": False, "message": "未登录或会话已过期。"}), 401
-            return redirect(url_for("login"))
-        return view(*args, **kwargs)
-
-    return wrapped_view
-
-
-def current_user() -> User | None:
-    user_id = session.get("user_id")
-    if not user_id:
-        return None
-    return db.session.get(User, user_id)
-
-
-def roles_required(*allowed_roles: str):
-    def decorator(view):
-        @wraps(view)
-        def wrapped_view(*args, **kwargs):
-            user = current_user()
-            role = user.role if user else None
-            normalized = "sub_admin" if role == "admin" else role
-            if user is None:
-                if request.path.startswith("/api/"):
-                    return jsonify({"ok": False, "message": "未登录或会话已过期。"}), 401
-                return redirect(url_for("login"))
-            if normalized not in allowed_roles:
-                if request.path.startswith("/api/"):
-                    return jsonify({"ok": False, "message": "权限不足"}), 403
-                flash("当前账号没有访问该页面的权限。", "error")
-                return redirect(url_for("dashboard"))
-            return view(*args, **kwargs)
-
-        return wrapped_view
-
-    return decorator
-
-
-def nav_context(active_page: str) -> dict[str, str]:
-    user = current_user()
-    role = user.role if user else None
-    return {
-        "user_name": session.get("username", "系统管理员"),
-        "user_role": "sub_admin" if role == "admin" else (role or "guest"),
-        "engineer_id": str(user.engineer_id or "") if user else "",
-        "active_page": active_page,
-        "ws_url": "/ws",
-    }
-
-
 def register_routes(app: Flask) -> None:
     @app.route("/")
     def home():
@@ -230,7 +155,7 @@ def register_routes(app: Flask) -> None:
         user = current_user()
         if user is None:
             return jsonify({"ok": False, "authenticated": False}), 401
-        role = "sub_admin" if user.role == "admin" else user.role
+        role = normalized_role(user)
         return jsonify(
             {
                 "ok": True,
@@ -262,27 +187,12 @@ def register_routes(app: Flask) -> None:
         if migrated is not None:
             user.password_hash = migrated
             db.session.commit()
-        if user.role == "engineer":
-            try:
-                update_engineer_presence(user, online=True)
-            except ValueError:
-                pass
-        session["user_id"] = user.id
-        session["username"] = user_full_name(user)
-        session["role"] = "sub_admin" if user.role == "admin" else user.role
-        session["engineer_id"] = user.engineer_id
-        session.permanent = False
+        open_user_session(user)
         return api_auth_session()
 
     @app.route("/api/auth/logout", methods=["POST"])
     def api_auth_logout():
-        user = current_user()
-        if user and user.role == "engineer":
-            try:
-                update_engineer_presence(user, online=False)
-            except ValueError:
-                pass
-        session.clear()
+        close_user_session()
         return jsonify({"ok": True})
 
     @app.route("/login", methods=["GET", "POST"])
@@ -301,16 +211,7 @@ def register_routes(app: Flask) -> None:
                     if migrated is not None:
                         user.password_hash = migrated
                         db.session.commit()
-                    if user.role == "engineer":
-                        try:
-                            update_engineer_presence(user, online=True)
-                        except ValueError:
-                            pass
-                    session["user_id"] = user.id
-                    session["username"] = user_full_name(user)
-                    session["role"] = "sub_admin" if user.role == "admin" else user.role
-                    session["engineer_id"] = user.engineer_id
-                    session.permanent = False
+                    open_user_session(user)
                     return redirect(url_for("dashboard"))
             flash("用户名或密码错误。", "error")
         return redirect(os.getenv("FRONTEND_URL", "http://127.0.0.1:5173"))
@@ -320,7 +221,7 @@ def register_routes(app: Flask) -> None:
         if request.method == "GET":
             return redirect(os.getenv("FRONTEND_URL", "http://127.0.0.1:5173"))
         user = current_user()
-        role = "sub_admin" if user and user.role == "admin" else (user.role if user else None)
+        role = normalized_role(user)
         if role != "super_admin":
             flash("请使用主管理员账号在用户管理中创建新账号。", "error")
             return redirect(url_for("login"))
@@ -357,24 +258,12 @@ def register_routes(app: Flask) -> None:
 
     @app.route("/logout")
     def logout():
-        user = current_user()
-        if user and user.role == "engineer":
-            try:
-                update_engineer_presence(user, online=False)
-            except ValueError:
-                pass
-        session.clear()
+        close_user_session()
         return redirect(url_for("login"))
 
     @app.route("/api/session/close", methods=["POST"])
     def api_session_close():
-        user = current_user()
-        if user and user.role == "engineer":
-            try:
-                update_engineer_presence(user, online=False)
-            except ValueError:
-                pass
-        session.clear()
+        close_user_session()
         return ("", 204)
 
     @app.route("/dashboard")

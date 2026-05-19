@@ -7,11 +7,14 @@ venv/
 
 .pytest_cache/
 .mypy_cache/
+.matplotlib_cache/
 
 .npm-cache/
 *.log
 flask*.log
 ~$*
+*.bkp
+.$*
 
 instance/*.db
 instance/*.sqlite
@@ -31,8 +34,9 @@ Desktop.ini
 
 # Generated local artifacts kept out of source
 docs/*.docx
-!docs/2022005052-王晨阳-论文初稿.docx
+!docs/2022005052-王晨阳-答辩稿.docx
 docs/*.pptx
+!docs/2022005052-王晨阳-毕业答辩PPT codex版本.pptx
 docs/*.pdf
 docs/*.zip
 docs/*.html

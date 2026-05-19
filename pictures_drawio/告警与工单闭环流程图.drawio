@@ -1,0 +1,123 @@
+<mxfile host="Electron" agent="Codex">
+  <diagram name="告警与工单闭环流程图" id="0">
+    <mxGraphModel dx="2184" dy="1520" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1450" pageHeight="1420" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="3" parent="1" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="开始" vertex="1">
+          <mxGeometry height="60" width="210" x="572" y="22" as="geometry" />
+        </mxCell>
+        <mxCell id="4" parent="1" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="异常检测服务 计算异常得分" vertex="1">
+          <mxGeometry height="65" width="240" x="557" y="112" as="geometry" />
+        </mxCell>
+        <mxCell id="5" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="是否触发告警" vertex="1">
+          <mxGeometry height="90" width="150" x="602" y="217" as="geometry" />
+        </mxCell>
+        <mxCell id="AHf1KW4JmZr4ka3TGpn3-39" edge="1" parent="1" source="6" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;exitX=0.51;exitY=0.831;exitDx=0;exitDy=0;exitPerimeter=0;" target="7" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="6" parent="1" style="shape=document;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="记录正常检测结果" vertex="1">
+          <mxGeometry height="70" width="230" x="202" y="227" as="geometry" />
+        </mxCell>
+        <mxCell id="7" parent="1" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="结束" vertex="1">
+          <mxGeometry height="60" width="210" x="212" y="342" as="geometry" />
+        </mxCell>
+        <mxCell id="8" parent="1" style="shape=document;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="生成告警事件" vertex="1">
+          <mxGeometry height="70" width="230" x="562" y="362" as="geometry" />
+        </mxCell>
+        <mxCell id="9" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="管理员确认告警" vertex="1">
+          <mxGeometry height="90" width="150" x="602" y="477" as="geometry" />
+        </mxCell>
+        <mxCell id="10" parent="1" style="shape=document;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="标记为误报 沉淀反馈样本" vertex="1">
+          <mxGeometry height="70" width="230" x="202" y="487" as="geometry" />
+        </mxCell>
+        <mxCell id="11" parent="1" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="结束" vertex="1">
+          <mxGeometry height="60" width="210" x="212" y="602" as="geometry" />
+        </mxCell>
+        <mxCell id="12" parent="1" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="创建工单" vertex="1">
+          <mxGeometry height="65" width="240" x="557" y="622" as="geometry" />
+        </mxCell>
+        <mxCell id="13" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="派单给工程师" vertex="1">
+          <mxGeometry height="65" width="230" x="562" y="722" as="geometry" />
+        </mxCell>
+        <mxCell id="14" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="工程师是否接单" vertex="1">
+          <mxGeometry height="90" width="150" x="602" y="822" as="geometry" />
+        </mxCell>
+        <mxCell id="15" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="重新派单 返回派单环节" vertex="1">
+          <mxGeometry height="65" width="230" x="932" y="837" as="geometry" />
+        </mxCell>
+        <mxCell id="16" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="现场处理并填写结果" vertex="1">
+          <mxGeometry height="65" width="230" x="562" y="967" as="geometry" />
+        </mxCell>
+        <mxCell id="17" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="复核是否通过" vertex="1">
+          <mxGeometry height="90" width="150" x="602" y="1072" as="geometry" />
+        </mxCell>
+        <mxCell id="18" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="退回继续处理 返回现场处理" vertex="1">
+          <mxGeometry height="65" width="230" x="932" y="1087" as="geometry" />
+        </mxCell>
+        <mxCell id="19" parent="1" style="shape=document;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="关闭工单 更新告警状态" vertex="1">
+          <mxGeometry height="70" width="230" x="562" y="1207" as="geometry" />
+        </mxCell>
+        <mxCell id="20" parent="1" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="反馈进入训练样本 形成闭环" vertex="1">
+          <mxGeometry height="65" width="240" x="892" y="1207" as="geometry" />
+        </mxCell>
+        <mxCell id="21" parent="1" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="结束" vertex="1">
+          <mxGeometry height="60" width="210" x="1072" y="1322" as="geometry" />
+        </mxCell>
+        <mxCell id="22" edge="1" parent="1" source="3" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=2;fontSize=14;" target="4" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="23" edge="1" parent="1" source="4" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=2;fontSize=14;" target="5" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="24" edge="1" parent="1" source="5" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=2;fontSize=14;" target="6" value="否">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="26" edge="1" parent="1" source="5" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=2;fontSize=14;" target="8" value="是">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="27" edge="1" parent="1" source="8" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=2;fontSize=14;exitX=0.498;exitY=0.85;exitDx=0;exitDy=0;exitPerimeter=0;" target="9" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="28" edge="1" parent="1" source="9" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=2;fontSize=14;" target="10" value="否">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="29" edge="1" parent="1" source="10" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=2;fontSize=14;exitX=0.497;exitY=0.898;exitDx=0;exitDy=0;exitPerimeter=0;" target="11" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="30" edge="1" parent="1" source="9" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=2;fontSize=14;" target="12" value="是">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="31" edge="1" parent="1" source="12" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=2;fontSize=14;" target="13" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="32" edge="1" parent="1" source="13" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=2;fontSize=14;" target="14" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="33" edge="1" parent="1" source="14" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=2;fontSize=14;" target="15" value="否">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="34" edge="1" parent="1" source="14" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=2;fontSize=14;" target="16" value="是">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="35" edge="1" parent="1" source="16" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=2;fontSize=14;" target="17" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="36" edge="1" parent="1" source="17" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=2;fontSize=14;" target="18" value="否">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="37" edge="1" parent="1" source="17" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=2;fontSize=14;" target="19" value="是">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="38" edge="1" parent="1" source="19" style="endArrow=block;html=1;rounded=0;strokeWidth=2;fontSize=14;" target="20" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="39" edge="1" parent="1" source="20" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=2;fontSize=14;" target="21" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
