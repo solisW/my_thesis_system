@@ -1,55 +1,55 @@
 <mxfile host="Electron" agent="Codex">
   <diagram name="数据接入与预处理流程图" id="0">
-    <mxGraphModel dx="1848" dy="1286" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1280" math="0" shadow="0">
+    <mxGraphModel dx="1716" dy="1194" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1280" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="3" parent="1" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="开始" vertex="1">
+        <mxCell id="3" parent="1" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="&lt;font style=&quot;font-size: 30px;&quot;&gt;开始&lt;/font&gt;" vertex="1">
           <mxGeometry height="60" width="210" x="522" y="38" as="geometry" />
         </mxCell>
-        <mxCell id="4" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="燃气表采集运行数据" vertex="1">
+        <mxCell id="4" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="&lt;font style=&quot;font-size: 22px;&quot;&gt;燃气表采集运行数据&lt;/font&gt;" vertex="1">
           <mxGeometry height="65" width="230" x="512" y="128" as="geometry" />
         </mxCell>
-        <mxCell id="5" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="通过HTTP接口上报数据" vertex="1">
+        <mxCell id="5" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="&lt;font style=&quot;font-size: 19px;&quot;&gt;通过HTTP接口上报数据&lt;/font&gt;" vertex="1">
           <mxGeometry height="65" width="230" x="512" y="218" as="geometry" />
         </mxCell>
-        <mxCell id="6" parent="1" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="设备密钥校验" vertex="1">
+        <mxCell id="6" parent="1" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="&lt;font style=&quot;font-size: 28px;&quot;&gt;设备密钥校验&lt;/font&gt;" vertex="1">
           <mxGeometry height="65" width="240" x="512" y="308" as="geometry" />
         </mxCell>
-        <mxCell id="7" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="设备是否合法" vertex="1">
+        <mxCell id="7" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="&lt;font style=&quot;font-size: 19px;&quot;&gt;设备是否合法&lt;/font&gt;" vertex="1">
           <mxGeometry height="90" width="150" x="557" y="403" as="geometry" />
         </mxCell>
-        <mxCell id="8" parent="1" style="shape=document;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="拒绝接入并记录日志" vertex="1">
+        <mxCell id="8" parent="1" style="shape=document;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="&lt;font style=&quot;font-size: 24px;&quot;&gt;拒绝接入并记录日志&lt;/font&gt;" vertex="1">
           <mxGeometry height="70" width="230" x="867" y="418" as="geometry" />
         </mxCell>
-        <mxCell id="9" parent="1" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="结束" vertex="1">
+        <mxCell id="9" parent="1" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="&lt;font style=&quot;font-size: 30px;&quot;&gt;结束&lt;/font&gt;" vertex="1">
           <mxGeometry height="60" width="210" x="877" y="518" as="geometry" />
         </mxCell>
-        <mxCell id="10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="解析上报字段" vertex="1">
+        <mxCell id="10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="&lt;font style=&quot;font-size: 29px;&quot;&gt;解析上报字段&lt;/font&gt;" vertex="1">
           <mxGeometry height="65" width="230" x="512" y="533" as="geometry" />
         </mxCell>
-        <mxCell id="11" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="字段是否完整" vertex="1">
+        <mxCell id="11" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="&lt;font style=&quot;font-size: 19px;&quot;&gt;字段是否完整&lt;/font&gt;" vertex="1">
           <mxGeometry height="90" width="150" x="557" y="623" as="geometry" />
         </mxCell>
-        <mxCell id="12" parent="1" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="缺失值处理与格式修正" vertex="1">
+        <mxCell id="12" parent="1" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;缺失值处理与格式修正&lt;/font&gt;" vertex="1">
           <mxGeometry height="65" width="240" x="867" y="638" as="geometry" />
         </mxCell>
-        <mxCell id="13" parent="1" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="补齐设备与时间信息" vertex="1">
+        <mxCell id="13" parent="1" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="&lt;font style=&quot;font-size: 24px;&quot;&gt;补齐设备与时间信息&lt;/font&gt;" vertex="1">
           <mxGeometry height="65" width="240" x="512" y="753" as="geometry" />
         </mxCell>
-        <mxCell id="14" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="写入原始物理数据" vertex="1">
+        <mxCell id="14" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="&lt;font style=&quot;font-size: 25px;&quot;&gt;写入原始物理数据&lt;/font&gt;" vertex="1">
           <mxGeometry height="65" width="230" x="512" y="848" as="geometry" />
         </mxCell>
-        <mxCell id="15" parent="1" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="特征标准化" vertex="1">
+        <mxCell id="15" parent="1" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="&lt;font style=&quot;font-size: 25px;&quot;&gt;特征标准化&lt;/font&gt;" vertex="1">
           <mxGeometry height="65" width="240" x="512" y="943" as="geometry" />
         </mxCell>
-        <mxCell id="16" parent="1" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="时间窗口构造" vertex="1">
+        <mxCell id="16" parent="1" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="&lt;font style=&quot;font-size: 25px;&quot;&gt;时间窗口构造&lt;/font&gt;" vertex="1">
           <mxGeometry height="65" width="240" x="512" y="1038" as="geometry" />
         </mxCell>
-        <mxCell id="17" parent="1" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="进入异常检测流程" vertex="1">
-          <mxGeometry height="60" width="210" x="522" y="1138" as="geometry" />
+        <mxCell id="17" parent="1" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="&lt;font style=&quot;font-size: 23px;&quot;&gt;进入异常检测流程&lt;/font&gt;" vertex="1">
+          <mxGeometry height="60" width="210" x="527" y="1138" as="geometry" />
         </mxCell>
-        <mxCell id="18" parent="1" style="shape=note;whiteSpace=wrap;html=1;size=16;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontSize=15;" value="准备/预处理框用于表示清洗、补齐、标准化等数据预处理动作。" vertex="1">
+        <mxCell id="18" parent="1" style="shape=note;whiteSpace=wrap;html=1;size=16;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;fontSize=15;" value="&lt;font style=&quot;font-size: 21px;&quot;&gt;准备/预处理框用于表示清洗、补齐、标准化等数据预处理动作。&lt;/font&gt;" vertex="1">
           <mxGeometry height="80" width="220" x="862" y="893" as="geometry" />
         </mxCell>
         <mxCell id="19" edge="1" parent="1" source="3" style="endArrow=block;html=1;rounded=0;strokeWidth=2;fontSize=14;" target="4" value="">
@@ -64,10 +64,10 @@
         <mxCell id="22" edge="1" parent="1" source="6" style="endArrow=block;html=1;rounded=0;strokeWidth=2;fontSize=14;" target="7" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="23" edge="1" parent="1" source="7" style="endArrow=block;html=1;rounded=0;strokeWidth=2;fontSize=14;" target="10" value="是">
+        <mxCell id="23" edge="1" parent="1" source="7" style="endArrow=block;html=1;rounded=0;strokeWidth=2;fontSize=14;" target="10" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;是&lt;/font&gt;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="24" edge="1" parent="1" source="7" style="endArrow=block;html=1;rounded=0;strokeWidth=2;fontSize=14;" target="8" value="否">
+        <mxCell id="24" edge="1" parent="1" source="7" style="endArrow=block;html=1;rounded=0;strokeWidth=2;fontSize=14;" target="8" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;否&lt;/font&gt;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="25" edge="1" parent="1" source="8" style="endArrow=block;html=1;rounded=0;strokeWidth=2;fontSize=14;" target="9" value="">
@@ -79,7 +79,7 @@
         <mxCell id="27" edge="1" parent="1" source="11" style="endArrow=block;html=1;rounded=0;strokeWidth=2;fontSize=14;" target="13" value="是">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="28" edge="1" parent="1" source="11" style="endArrow=block;html=1;rounded=0;strokeWidth=2;fontSize=14;" target="12" value="否">
+        <mxCell id="28" edge="1" parent="1" source="11" style="endArrow=block;html=1;rounded=0;strokeWidth=2;fontSize=14;" target="12" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;否&lt;/font&gt;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="29" edge="1" parent="1" source="12" style="endArrow=block;html=1;rounded=0;strokeWidth=2;fontSize=14;" target="13" value="">

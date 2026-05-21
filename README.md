@@ -47,11 +47,18 @@ pip install -r requirements.txt
 .\start_system.bat
 ```
 
-`start_system.bat` 会同时启动后端和独立前端。如果只需要单独托管前端，可另开终端运行：
+`start_system.bat` 是唯一保留的根目录启动脚本，会同时启动后端 API 和独立前端。
+
+最终答辩前可执行本地验收：
 
 ```powershell
-.\start_frontend.bat
+python -m compileall src scripts
+python scripts\validate_project_health.py
+node --check frontend\src\main.js
+node --check frontend\src\api.js
 ```
+
+`validate_project_health.py` 会检查前端静态资源、管理员登录、核心 API、设备注册与上报、运营商 Webhook、训练、漂移监控和 MQTT 状态接口。
 
 默认访问地址：
 
@@ -86,17 +93,13 @@ $env:DB_BACKEND="sqlite"
 
 更多配置见 `docs/配置说明.md`。
 
-## 常用脚本
+## 启动脚本
 
 | 脚本 | 用途 |
 | --- | --- |
 | `start_system.bat` | 启动完整系统，前端页面、后端 API 和模块控制入口统一加载 |
-| `start_frontend.bat` | 单独启动独立前端静态服务 |
-| `validate_project_health.bat` | 执行本地健康检查 |
-| `system_health_check.bat` | 在系统运行后执行前端资源、后端接口和登录看板诊断 |
-| `export_lstm_autoencoder_experiment_results.bat` | 导出 LSTM AutoEncoder 实验评估结果 |
 
-脚本详情见 `docs/脚本说明.md`。
+脚本详情见 `docs/脚本说明.md`。根目录只保留这一个批处理入口，避免答辩或演示时误开半套系统。
 
 辅助脚本位于 `scripts/`：
 

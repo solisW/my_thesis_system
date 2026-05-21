@@ -598,23 +598,29 @@ def dashboard_snapshot() -> dict[str, Any]:
         )
 
     alerts = alerts_snapshot(limit=20, sort_by="time")
-    recent_alerts = AnomalyEvent.query.order_by(AnomalyEvent.created_at.desc()).limit(500).all()
+    current_hour = datetime.now().replace(minute=0, second=0, microsecond=0)
     buckets: dict[str, dict[str, Any]] = {}
+    for offset in range(23, -1, -1):
+        bucket_time = current_hour - timedelta(hours=offset)
+        bucket_key = bucket_time.isoformat()
+        buckets[bucket_key] = {
+            "timestamp": bucket_key,
+            "label": bucket_time.strftime("%m-%d %H:00"),
+            "anomaly_count": 0,
+            "total_count": 0,
+        }
+
+    window_start = current_hour - timedelta(hours=23)
+    recent_alerts = AnomalyEvent.query.filter(AnomalyEvent.created_at >= window_start).all()
     for event in recent_alerts:
         bucket_time = event.created_at.replace(minute=0, second=0, microsecond=0)
         bucket_key = bucket_time.isoformat()
-        bucket = buckets.setdefault(
-            bucket_key,
-            {
-                "timestamp": bucket_key,
-                "label": bucket_time.strftime("%m-%d %H:00"),
-                "anomaly_count": 0,
-                "total_count": 0,
-            },
-        )
+        bucket = buckets.get(bucket_key)
+        if bucket is None:
+            continue
         bucket["total_count"] += 1
         bucket["anomaly_count"] += 1
-    trend = list(sorted(buckets.values(), key=lambda item: item["timestamp"]))[-24:]
+    trend = list(sorted(buckets.values(), key=lambda item: item["timestamp"]))
 
     return {
         "summary": {

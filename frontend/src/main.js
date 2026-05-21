@@ -501,12 +501,30 @@ const appInstance = createApp({
             if (trendChart) {
                 const base = this.baseChartOption();
                 const rows = this.state.dashboard?.trend || [];
+                const values = rows.map((item) => Number(item.anomaly_count || 0));
                 trendChart.setOption({
                     ...base,
+                    grid: { ...base.grid, left: 44, right: 20, top: 34, bottom: 46 },
                     xAxis: { ...base.xAxis, type: "category", data: rows.map((item) => item.label) },
-                    yAxis: { ...base.yAxis, type: "value" },
-                    series: [{ type: "line", smooth: true, name: "告警数", data: rows.map((item) => item.anomaly_count || 0), areaStyle: { color: chartGradient("rgba(37,99,235,.28)") }, lineStyle: { width: 3, color: "#2563eb" }, itemStyle: { color: "#2563eb" } }],
-                });
+                    yAxis: { ...base.yAxis, type: "value", min: 0, minInterval: 1 },
+                    graphic: rows.length ? [] : [{
+                        type: "text",
+                        left: "center",
+                        top: "middle",
+                        style: { text: "暂无告警趋势数据", fill: "#6f746f", fontSize: 13, fontWeight: 700 },
+                    }],
+                    series: [{
+                        type: "line",
+                        smooth: true,
+                        showSymbol: true,
+                        symbolSize: 6,
+                        name: "告警数",
+                        data: values,
+                        areaStyle: { color: chartGradient("rgba(37,99,235,.28)") },
+                        lineStyle: { width: 3, color: "#2563eb" },
+                        itemStyle: { color: "#2563eb" },
+                    }],
+                }, true);
                 trendChart.resize();
             }
             this.renderMap();
