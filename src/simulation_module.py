@@ -66,7 +66,8 @@ class SimulationModule:
                     "port": 8600 + index,
                     "firmware_version": f"v2.{(index % 4) + 1}.{index % 9}",
                     "api_key": self._api_key(index),
-                }
+                },
+                trusted_update=True,
             )
 
     def _run_loop(self) -> None:

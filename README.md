@@ -47,7 +47,7 @@ pip install -r requirements.txt
 .\start_system.bat
 ```
 
-`start_system.bat` 是唯一保留的根目录启动脚本，会同时启动后端 API 和独立前端。
+`start_system.bat` 是唯一保留的根目录启动脚本，会在同一个窗口内同时启动后端 API 和独立前端；停止时在该窗口按一次 `Ctrl+C` 即可。
 
 最终答辩前可执行本地验收：
 

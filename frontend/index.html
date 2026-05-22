@@ -7,7 +7,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <title>物联网智能燃气表数据异常检测系统</title>
     <link rel="stylesheet" href="./vendor/leaflet.css?v=20260518">
-    <link rel="stylesheet" href="./src/styles.css?v=20260518">
+    <link rel="stylesheet" href="./src/styles.css?v=20260524">
 </head>
 <body>
     <div id="app">
@@ -23,9 +23,20 @@
         window.renderBootError = function (message) {
             var app = document.getElementById("app");
             if (!app || app.dataset.mounted === "1") return;
-            app.innerHTML = '<main class="boot-fallback"><section><h1>前端启动失败</h1><p>' +
-                String(message || "脚本加载异常") +
-                '</p><p class="boot-hint">请确认已通过 start_system.bat 启动完整系统，并刷新页面。</p></section></main>';
+            app.textContent = "";
+            var main = document.createElement("main");
+            var section = document.createElement("section");
+            var title = document.createElement("h1");
+            var detail = document.createElement("p");
+            var hint = document.createElement("p");
+            main.className = "boot-fallback";
+            hint.className = "boot-hint";
+            title.textContent = "前端启动失败";
+            detail.textContent = String(message || "脚本加载异常");
+            hint.textContent = "请确认已通过 start_system.bat 启动完整系统，并刷新页面。";
+            section.append(title, detail, hint);
+            main.appendChild(section);
+            app.appendChild(main);
         };
         window.setTimeout(function () {
             var app = document.getElementById("app");
@@ -38,9 +49,9 @@
     <script src="./vendor/echarts.min.js?v=20260518"></script>
     <script src="./vendor/leaflet.js?v=20260518"></script>
     <script src="./src/config.js?v=20260518"></script>
-    <script src="./src/api.js?v=20260518"></script>
+    <script src="./src/api.js?v=20260524"></script>
     <script src="./src/formatters.js?v=20260518"></script>
     <script src="./src/map-utils.js?v=20260518"></script>
-    <script src="./src/main.js?v=20260519"></script>
+    <script src="./src/main.js?v=20260524"></script>
 </body>
 </html>

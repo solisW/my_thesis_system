@@ -327,12 +327,43 @@ td span { color: var(--muted); font-size: 13px; }
 .panel-title h2 { margin: 0; font-size: 19px; letter-spacing: 0; font-weight: 760; }
 .panel-title p, .panel-title span { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
 .panel-title select { max-width: 210px; }
+.map-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+.segmented {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 4px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(255,255,255,.72);
+}
+.segmented button {
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: #4e544d;
+    padding: 7px 9px;
+    box-shadow: none;
+    font-size: 12px;
+    white-space: nowrap;
+}
+.segmented button:hover { background: #eef1ec; transform: none; box-shadow: none; }
+.segmented button.active { background: #111; color: #fff; }
 .map-panel { grid-column: auto; grid-row: auto; }
-.chart { width: 100%; height: 286px; }
+.chart {
+    width: 100%;
+    height: 286px;
+    min-height: 236px;
+    position: relative;
+    overflow: hidden;
+}
 .chart.compact { height: 236px; }
 .chart.large { height: 368px; }
 .map {
+    width: 100%;
     height: 520px;
+    min-height: 360px;
+    position: relative;
     border-radius: 8px;
     border: 1px solid var(--line);
     overflow: hidden;
@@ -344,6 +375,104 @@ td span { color: var(--muted); font-size: 13px; }
         radial-gradient(circle at 70% 68%, rgba(17,17,17,.08), transparent 28%),
         #eef1ec;
     background-size: 42px 42px, 42px 42px, auto, auto, auto;
+}
+.chart canvas, .chart div, .map .leaflet-pane, .map .leaflet-control-container { max-width: 100%; }
+.chart-native {
+    border-radius: 8px;
+    background:
+        linear-gradient(180deg, rgba(255,255,255,.55), rgba(246,248,244,.5)),
+        #f8faf7;
+}
+.chart-runtime {
+    border-radius: 8px;
+    background:
+        linear-gradient(180deg, rgba(255,255,255,.55), rgba(246,248,244,.5)),
+        #f8faf7;
+}
+.chart-runtime > div,
+.chart-runtime canvas {
+    min-width: 100%;
+    min-height: 100%;
+}
+.native-chart-layer {
+    position: absolute;
+    inset: 0;
+    min-height: 100%;
+}
+.native-chart-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+.native-chart-svg.has-legend { height: calc(100% - 24px); margin-top: 24px; }
+.native-chart-grid line {
+    stroke: #edf2f7;
+    stroke-width: 1;
+}
+.native-chart-bars rect { transition: opacity .15s ease; }
+.native-chart-bars rect:hover { opacity: .8; }
+.native-chart-bars text, .native-chart-ticks text {
+    fill: #64748b;
+    font-size: 11px;
+    font-weight: 700;
+}
+.native-chart-lines polyline {
+    fill: none;
+    stroke: var(--series-color);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.native-chart-lines circle {
+    fill: #fff;
+    stroke: var(--series-color);
+    stroke-width: 2;
+}
+.native-chart-legend {
+    position: absolute;
+    top: 0;
+    right: 8px;
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px 12px;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 760;
+}
+.native-chart-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.native-chart-legend i {
+    width: 9px;
+    height: 9px;
+    border-radius: 99px;
+    display: inline-block;
+}
+.native-chart-empty {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: #6f746f;
+    font-size: 13px;
+    font-weight: 760;
+}
+.native-pie-title {
+    fill: #253241;
+    font-size: 16px;
+    font-weight: 800;
+}
+.native-pie-total {
+    fill: #64748b;
+    font-size: 24px;
+    font-weight: 800;
+}
+.native-pie-legend {
+    left: 8px;
+    right: 8px;
+    top: auto;
+    bottom: 8px;
+    justify-content: center;
 }
 .leaflet-container { background: transparent; font: inherit; }
 .leaflet-control-attribution { font-size: 11px; }
@@ -485,6 +614,7 @@ td span { color: var(--muted); font-size: 13px; }
     .dashboard-grid, .stats-row, .report-summary, .form-grid { grid-template-columns: 1fr; }
     .map-panel { grid-column: span 1; }
     .map { height: 360px; }
+    .chart.large { height: 460px; }
     .login-copy h1 { font-size: 42px; }
 }
 

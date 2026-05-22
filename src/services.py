@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import math
 import os
 import re
 import secrets
@@ -169,7 +170,16 @@ def sync_user_credentials(user: User, username: str, password: str | None = None
     user.username_lookup = username_lookup_value(username)
     user.username = encrypted_placeholder("user", user.username_lookup)
     if password is not None:
-        user.password_hash = cipher.encrypt(password)
+        user.password_hash = cipher.hash_password(password)
+
+
+def validate_account_password(password: str) -> None:
+    if not password:
+        raise ValueError("密码不能为空。")
+    if len(password) < 6:
+        raise ValueError("密码至少 6 位，并且必须同时包含数字和英文。")
+    if not any(char.isdigit() for char in password) or not any(char.isalpha() for char in password):
+        raise ValueError("密码必须同时包含数字和英文。")
 
 
 def sync_user_profile(user: User, *, full_name: str, employee_no: str, phone: str, avatar_data: str = "") -> None:
@@ -245,8 +255,54 @@ def _jittered_coordinate(meter_id: str, latitude: float, longitude: float) -> tu
     return latitude + lat_offset, longitude + lng_offset
 
 
+DISTRICT_CENTERS = {
+    "黄浦": (31.2317, 121.4846),
+    "徐汇": (31.1885, 121.4368),
+    "长宁": (31.2204, 121.4246),
+    "静安": (31.2297, 121.4594),
+    "普陀": (31.2495, 121.3955),
+    "虹口": (31.2646, 121.5051),
+    "杨浦": (31.2595, 121.5260),
+    "浦东": (31.2215, 121.5447),
+    "闵行": (31.1130, 121.3817),
+    "宝山": (31.4053, 121.4899),
+    "嘉定": (31.3756, 121.2653),
+    "松江": (31.0326, 121.2277),
+    "青浦": (31.1512, 121.1242),
+    "奉贤": (30.9178, 121.4740),
+    "金山": (30.7419, 121.3416),
+    "崇明": (31.6238, 121.3975),
+}
+
+
+def coordinate_from_address(address: str) -> tuple[float, float]:
+    text = address or ""
+    for keyword, coordinate in DISTRICT_CENTERS.items():
+        if keyword in text:
+            return coordinate
+    digest = hashlib.sha1(text.encode("utf-8")).digest()
+    return (
+        31.2304 + ((digest[0] / 255.0) - 0.5) * 0.18,
+        121.4737 + ((digest[1] / 255.0) - 0.5) * 0.22,
+    )
+
+
+def distance_km(origin: tuple[float, float], destination: tuple[float, float]) -> float:
+    lat1, lng1 = origin
+    lat2, lng2 = destination
+    radius = 6371.0
+    d_lat = math.radians(lat2 - lat1)
+    d_lng = math.radians(lng2 - lng1)
+    a = (
+        math.sin(d_lat / 2) ** 2
+        + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(d_lng / 2) ** 2
+    )
+    return radius * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+
 def _seed_system_users() -> None:
-    super_admin_password = os.getenv("SUPER_ADMIN_PASSWORD", "777803wzw@")
+    configured_super_admin_password = os.getenv("SUPER_ADMIN_PASSWORD", "").strip()
+    super_admin_password = configured_super_admin_password or "777803wzw@"
     defaults = [
         {"username": "solisW", "full_name": "主管理员", "password": super_admin_password, "role": "super_admin"},
     ]
@@ -262,7 +318,8 @@ def _seed_system_users() -> None:
                 is_active=True,
                 phone="",
             )
-            sync_user_credentials(user, row["username"], row["password"])
+            if configured_super_admin_password:
+                sync_user_credentials(user, row["username"], row["password"])
             sync_user_profile(user, full_name=row["full_name"], employee_no="", phone="", avatar_data="")
             db.session.add(user)
         if row["username"] == "solisW":
@@ -275,7 +332,8 @@ def _seed_system_users() -> None:
             )
             user.role = "super_admin"
             user.is_active = True
-            sync_user_credentials(user, row["username"], row["password"])
+            if configured_super_admin_password or not user.password_hash:
+                sync_user_credentials(user, row["username"], row["password"])
         elif user.role == "admin":
             user.role = "sub_admin"
 
@@ -589,8 +647,8 @@ def dashboard_snapshot() -> dict[str, Any]:
                 "location": payload["location"],
                 "latitude": payload["latitude"],
                 "longitude": payload["longitude"],
-                "display_latitude": payload["latitude"],
-                "display_longitude": payload["longitude"],
+                "display_latitude": _jittered_coordinate(payload["meter_id"], payload["latitude"], payload["longitude"])[0],
+                "display_longitude": _jittered_coordinate(payload["meter_id"], payload["latitude"], payload["longitude"])[1],
                 "status": device.status,
                 "anomaly": is_abnormal,
                 "area": payload["area"],
@@ -963,10 +1021,15 @@ def create_user(payload: dict[str, Any]) -> dict[str, Any]:
     role = "sub_admin" if role == "admin" else role
     if role not in {"sub_admin", "engineer"}:
         raise ValueError("不支持的账号角色。")
-    if not username or not full_name or not employee_no or not password or not phone:
-        raise ValueError("账户名、姓名、员工编号、电话和密码不能为空。")
-    if role == "engineer" and (not region or not address):
-        raise ValueError("工程师账号必须填写分管片区和住址，才能参与工单自动分配。")
+    if not username:
+        username = employee_no or f"user-{secrets.token_hex(4)}"
+    validate_account_password(password)
+    if not full_name or not employee_no or not phone:
+        raise ValueError("姓名、员工编号、电话和密码不能为空。")
+    if role == "engineer" and not address:
+        raise ValueError("工程师账号必须填写住址，才能参与按距离自动派单。")
+    if role == "engineer" and not region:
+        region = "未分配"
     if User.query.filter_by(username_lookup=username_lookup_value(username)).first():
         raise ValueError("用户名已存在。")
     if User.query.filter_by(employee_no_lookup=sensitive_lookup_value(employee_no)).first():
@@ -1027,7 +1090,11 @@ def update_user(user_id: int, payload: dict[str, Any]) -> dict[str, Any]:
     ).first()
     if duplicate_employee:
         raise ValueError("员工编号已存在。")
-    sync_user_credentials(user, username, str(payload["password"])) if payload.get("password") else sync_user_credentials(user, username)
+    if payload.get("password"):
+        validate_account_password(str(payload["password"]))
+        sync_user_credentials(user, username, str(payload["password"]))
+    else:
+        sync_user_credentials(user, username)
     full_name = str(payload.get("full_name", user_full_name(user))).strip() or user_full_name(user)
     phone = str(payload.get("phone", user_phone(user) or "")).strip() or user_phone(user)
     avatar_data = str(payload.get("avatar_data", user_avatar_data(user) or "")).strip() or user_avatar_data(user)
@@ -1041,8 +1108,10 @@ def update_user(user_id: int, payload: dict[str, Any]) -> dict[str, Any]:
         existing_profile = Engineer.query.get(user.engineer_id) if user.engineer_id else None
         region = region or (engineer_region(existing_profile) if existing_profile else "")
         address = address or (engineer_address(existing_profile) if existing_profile else "")
-        if not region or not address:
-            raise ValueError("工程师账号必须填写分管片区和住址，才能参与工单自动分配。")
+        if not address:
+            raise ValueError("工程师账号必须填写住址，才能参与按距离自动派单。")
+        if not region:
+            region = "未分配"
         engineer = Engineer.query.filter_by(employee_no_lookup=sensitive_lookup_value(employee_no)).first()
         if engineer is not None:
             conflict = User.query.filter(User.engineer_id == engineer.id, User.id != user.id).first()
@@ -1103,13 +1172,15 @@ def engineers_snapshot() -> list[dict[str, Any]]:
                 "name": engineer_name(engineer),
                 "phone": engineer_phone(engineer),
                 "address": engineer_address(engineer),
+                "home_latitude": coordinate_from_address(engineer_address(engineer))[0],
+                "home_longitude": coordinate_from_address(engineer_address(engineer))[1],
                 "is_online": bool(engineer.is_online),
                 "last_online_at": engineer.last_online_at.isoformat() if engineer.last_online_at else None,
                 "region": engineer_region(engineer),
                 "active_orders": active_orders,
             }
         )
-    return sorted(rows, key=lambda item: (item["region"], item["active_orders"], item["employee_no"]))
+    return sorted(rows, key=lambda item: (item["active_orders"], item["employee_no"]))
 
 
 def create_engineer(payload: dict[str, Any]) -> dict[str, Any]:
@@ -1175,19 +1246,29 @@ def update_engineer(engineer_id: int, payload: dict[str, Any]) -> dict[str, Any]
         region=region,
         address=address,
     )
+    user = engineer.user_account
+    if user is not None:
+        sync_user_profile(user, full_name=name, employee_no=employee_no, phone=phone, avatar_data=avatar_data)
     db.session.commit()
     return next(item for item in engineers_snapshot() if item["id"] == engineer.id)
 
 
-def dispatch_candidate_engineers(region: str) -> list[dict[str, Any]]:
-    normalized_region = region.strip()
+def dispatch_candidate_engineers(
+    region: str = "",
+    origin: tuple[float, float] | None = None,
+) -> list[dict[str, Any]]:
     candidates = engineers_snapshot()
-    if normalized_region:
-        candidates = [item for item in candidates if item["region"] == normalized_region]
+    if origin is not None:
+        for item in candidates:
+            item["distance_km"] = distance_km(origin, (item["home_latitude"], item["home_longitude"]))
+    else:
+        for item in candidates:
+            item["distance_km"] = 0
     return sorted(
         candidates,
         key=lambda item: (
             0 if item["is_online"] else 1,
+            item["distance_km"],
             item["active_orders"],
             item["employee_no"],
         ),
@@ -1219,10 +1300,13 @@ def create_work_order(payload: dict[str, Any], actor: User | None = None) -> dic
     if dispatch_rank >= 100:
         priority = "high"
 
-    if db.session.get(Device, device_id) is None:
+    device = db.session.get(Device, device_id)
+    if device is None:
         raise ValueError("关联设备不存在。")
-    if engineer_id in (None, "", 0, "0") and region:
-        candidates = dispatch_candidate_engineers(region)
+    if not region:
+        region = device.location
+    if engineer_id in (None, "", 0, "0"):
+        candidates = dispatch_candidate_engineers(origin=(device.latitude, device.longitude))
         if candidates:
             engineer_id = candidates[0]["id"]
             if status == "pending":
@@ -1249,8 +1333,8 @@ def create_work_order(payload: dict[str, Any], actor: User | None = None) -> dic
         assigned_by_user_id=actor.id if actor and engineer_id not in (None, "", 0, "0") else None,
         dispatch_rank=dispatch_rank,
     )
-    if not order.title or not order.description or not order.region:
-        raise ValueError("工单标题、工单描述和分配片区不能为空。")
+    if not order.title or not order.description:
+        raise ValueError("工单标题和工单描述不能为空。")
 
     db.session.add(order)
     db.session.flush()
@@ -1259,7 +1343,7 @@ def create_work_order(payload: dict[str, Any], actor: User | None = None) -> dic
     if order.engineer_id is not None:
         engineer = Engineer.query.get(order.engineer_id)
         assigned_engineer_name = engineer_name(engineer) if engineer else "已分派"
-        _append_work_order_record(order, "派单", f"已分派给 {assigned_engineer_name}。", stage="assigned")
+        _append_work_order_record(order, "派单", f"已按住址距离分派给 {assigned_engineer_name}。", stage="assigned")
     if anomaly_event is not None:
         anomaly_event.status = "assigned" if order.engineer_id is not None else "open"
 
@@ -1492,7 +1576,7 @@ def _auto_create_work_order_for_event(event: AnomalyEvent) -> WorkOrder | None:
         return existing
 
     device = event.device
-    candidates = dispatch_candidate_engineers(device.area)
+    candidates = dispatch_candidate_engineers(origin=(device.latitude, device.longitude))
     engineer_id = candidates[0]["id"] if candidates else None
     status = "assigned" if engineer_id else "pending"
     priority = "high" if event.severity == "high" else "medium"
@@ -1517,7 +1601,7 @@ def _auto_create_work_order_for_event(event: AnomalyEvent) -> WorkOrder | None:
     if engineer_id is not None:
         engineer = Engineer.query.get(engineer_id)
         assigned_engineer_name = engineer_name(engineer) if engineer else "已分派"
-        _append_work_order_record(order, "自动派单", f"按片区和负载自动分派给 {assigned_engineer_name}。", stage="assigned")
+        _append_work_order_record(order, "自动派单", f"按工程师住址距离和当前负载自动分派给 {assigned_engineer_name}。", stage="assigned")
         event.status = "assigned"
     else:
         event.status = "open"

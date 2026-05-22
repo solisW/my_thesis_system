@@ -16,11 +16,11 @@
         <mxCell id="6" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;样本是否充足&lt;/font&gt;" vertex="1">
           <mxGeometry height="105" width="180" x="550" y="338" as="geometry" />
         </mxCell>
+        <mxCell id="w0lAMX9ZAdaf4GCMoS58-35" edge="1" parent="1" source="7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;" target="19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
         <mxCell id="7" parent="1" style="shape=document;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="&lt;font style=&quot;font-size: 25px;&quot;&gt;样本不足日志&lt;/font&gt;" vertex="1">
           <mxGeometry height="80" width="260" x="939" y="352" as="geometry" />
-        </mxCell>
-        <mxCell id="8" parent="1" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="&lt;font style=&quot;font-size: 30px;&quot;&gt;结束&lt;/font&gt;" vertex="1">
-          <mxGeometry height="62" width="240" x="949" y="473" as="geometry" />
         </mxCell>
         <mxCell id="9" parent="1" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="&lt;font style=&quot;font-size: 25px;&quot;&gt;数据清洗 样本标注&lt;/font&gt;" vertex="1">
           <mxGeometry height="76" width="280" x="501" y="488" as="geometry" />
@@ -40,11 +40,11 @@
         <mxCell id="14" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;指标是否达标&lt;/font&gt;" vertex="1">
           <mxGeometry height="105" width="180" x="554" y="993" as="geometry" />
         </mxCell>
+        <mxCell id="w0lAMX9ZAdaf4GCMoS58-37" edge="1" parent="1" source="15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;" target="19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
         <mxCell id="15" parent="1" style="shape=document;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="&lt;font style=&quot;font-size: 25px;&quot;&gt;保留旧模型 记录日志&lt;/font&gt;" vertex="1">
           <mxGeometry height="86" width="260" x="939" y="1004" as="geometry" />
-        </mxCell>
-        <mxCell id="16" parent="1" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="&lt;font style=&quot;font-size: 30px;&quot;&gt;结束&lt;/font&gt;" vertex="1">
-          <mxGeometry height="62" width="240" x="949" y="1133" as="geometry" />
         </mxCell>
         <mxCell id="17" parent="1" style="shape=document;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=17;" value="&lt;font style=&quot;font-size: 25px;&quot;&gt;登记模型元数据&lt;/font&gt;" vertex="1">
           <mxGeometry height="80" width="280" x="504" y="1143" as="geometry" />
@@ -67,9 +67,6 @@
         <mxCell id="23" edge="1" parent="1" source="6" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=2;fontSize=14;" target="7" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;否&lt;/font&gt;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="24" edge="1" parent="1" source="7" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=2;fontSize=14;" target="8" value="">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
         <mxCell id="25" edge="1" parent="1" source="6" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=2;fontSize=14;" target="9" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;是&lt;/font&gt;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
@@ -89,9 +86,6 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="31" edge="1" parent="1" source="14" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=2;fontSize=14;" target="15" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;否&lt;/font&gt;">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="32" edge="1" parent="1" source="15" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=2;fontSize=14;" target="16" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="33" edge="1" parent="1" source="14" style="endArrow=block;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeWidth=2;fontSize=14;" target="17" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;是&lt;/font&gt;">

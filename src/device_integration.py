@@ -31,11 +31,12 @@ def _coerce_bool(value: Any, default: bool = True) -> bool:
     return str(value).strip().lower() not in {"0", "false", "no", "off", "disabled", "停用", "否"}
 
 
-def register_device_endpoint(payload: dict[str, Any]) -> Device:
+def register_device_endpoint(payload: dict[str, Any], *, trusted_update: bool = False) -> Device:
     meter_id = str(payload.get("meter_id", "")).strip()
     name = str(payload.get("name", "")).strip() or meter_id
     location = str(payload.get("location", "")).strip() or "未设置"
     requested_api_key = str(payload.get("api_key", "")).strip()
+    current_api_key = str(payload.get("current_api_key", "")).strip()
 
     if not meter_id:
         raise ValueError("设备编号不能为空。")
@@ -64,6 +65,9 @@ def register_device_endpoint(payload: dict[str, Any]) -> Device:
         )
         db.session.add(device)
     else:
+        presented_api_key = current_api_key or requested_api_key
+        if not trusted_update and presented_api_key != device.api_key:
+            raise ValueError("Invalid device API key.")
         api_key = requested_api_key or device.api_key
         if requested_api_key and api_key != device.api_key:
             duplicate_key = Device.query.filter(Device.api_key == api_key, Device.id != device.id).first()

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import secrets
 import time
 from pathlib import Path
 
@@ -77,7 +78,7 @@ TRANSIENT_MYSQL_DDL_ERROR_CODES = {1205, 1213, 1684}
 
 def create_app() -> Flask:
     app = Flask(__name__)
-    app.config["SECRET_KEY"] = os.getenv("APP_SECRET_KEY", "gas-monitor-secret-key")
+    app.config["SECRET_KEY"] = os.getenv("APP_SECRET_KEY") or secrets.token_urlsafe(32)
     app.config["SQLALCHEMY_DATABASE_URI"] = get_database_uri()
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["SESSION_COOKIE_HTTPONLY"] = True
@@ -93,9 +94,42 @@ def create_app() -> Flask:
         initialize_database_with_retry(app)
 
     register_cors(app)
+    register_security_guards(app)
     register_routes(app)
     runtime_services.start_background_services(app)
     return app
+
+
+def register_security_guards(app: Flask) -> None:
+    allowed_origins = {
+        value.strip()
+        for value in os.getenv(
+            "FRONTEND_ORIGINS",
+            "http://127.0.0.1:5173,http://localhost:5173",
+        ).split(",")
+        if value.strip()
+    }
+    allowed_origins.add(os.getenv("FRONTEND_URL", "http://127.0.0.1:5173").rstrip("/"))
+    cookie_api_exemptions = (
+        "/api/auth/login",
+        "/api/auth/session",
+        "/api/device/register",
+        "/api/device/upload",
+        "/api/carrier/webhook/",
+    )
+
+    @app.before_request
+    def reject_cross_site_cookie_api_writes():
+        if request.method not in {"POST", "PUT", "DELETE", "PATCH"}:
+            return None
+        if not request.path.startswith("/api/"):
+            return None
+        if any(request.path.startswith(path) for path in cookie_api_exemptions):
+            return None
+        origin = (request.headers.get("Origin") or "").rstrip("/")
+        if origin and origin not in allowed_origins:
+            return jsonify({"ok": False, "message": "Cross-site request origin is not allowed."}), 403
+        return None
 
 
 def initialize_database_with_retry(
@@ -166,6 +200,7 @@ def register_routes(app: Flask) -> None:
                     "full_name": user_full_name(user),
                     "role": role,
                     "engineer_id": user.engineer_id,
+                    "engineer_online": bool(user.engineer_profile.is_online) if user.engineer_profile else False,
                 },
                 "ws_url": "/ws",
             }
@@ -188,10 +223,23 @@ def register_routes(app: Flask) -> None:
             user.password_hash = migrated
             db.session.commit()
         open_user_session(user)
+        if user.role == "engineer":
+            try:
+                update_engineer_presence(user, True)
+                broadcast_engineer_state()
+            except ValueError:
+                pass
         return api_auth_session()
 
     @app.route("/api/auth/logout", methods=["POST"])
     def api_auth_logout():
+        user = current_user()
+        if user and user.role == "engineer":
+            try:
+                update_engineer_presence(user, False)
+                broadcast_engineer_state()
+            except ValueError:
+                pass
         close_user_session()
         return jsonify({"ok": True})
 
@@ -247,7 +295,7 @@ def register_routes(app: Flask) -> None:
                         username_lookup=username_lookup_value(username),
                         full_name="已加密用户",
                         full_name_encrypted=cipher.encrypt(full_name),
-                        password_hash=cipher.encrypt(password),
+                        password_hash=cipher.hash_password(password),
                         role="admin",
                     )
                 )
@@ -355,6 +403,7 @@ def register_routes(app: Flask) -> None:
 
     @app.route("/api/engineers", methods=["GET", "POST"])
     @login_required
+    @roles_required("super_admin", "sub_admin")
     def api_engineers():
         if request.method == "GET":
             return jsonify(engineers_snapshot())
@@ -494,6 +543,7 @@ def register_routes(app: Flask) -> None:
 
     @app.route("/api/alerts/<int:alert_id>/feedback", methods=["POST"])
     @login_required
+    @roles_required("super_admin", "sub_admin")
     def api_alert_feedback(alert_id: int):
         payload = request.get_json(silent=True) or {}
         try:
@@ -528,6 +578,7 @@ def register_routes(app: Flask) -> None:
 
     @app.route("/api/settings")
     @login_required
+    @roles_required("super_admin", "sub_admin")
     def api_settings():
         return jsonify(settings_snapshot())
 
@@ -622,6 +673,7 @@ def register_routes(app: Flask) -> None:
     @app.route("/api/device/register", methods=["POST"])
     def api_device_register():
         payload = request.get_json(silent=True) or {}
+        payload["current_api_key"] = request.headers.get("X-API-Key", "").strip() or str(payload.get("current_api_key", "")).strip()
         try:
             device = register_device_endpoint(payload)
         except ValueError as exc:
@@ -668,6 +720,11 @@ def register_routes(app: Flask) -> None:
 
     @sock.route("/ws")
     def websocket(ws):
+        user = current_user()
+        if user is None:
+            ws.send(json.dumps({"event": "error", "data": {"message": "Authentication required."}}, ensure_ascii=False))
+            ws.close()
+            return
         hub.register(ws)
         try:
             ws.send(json.dumps({"event": "ready", "data": None}, ensure_ascii=False))
@@ -676,6 +733,10 @@ def register_routes(app: Flask) -> None:
                 if message is None:
                     break
                 if message == "bootstrap":
+                    work_orders = work_orders_snapshot()
+                    if session.get("role") == "engineer" and user.engineer_id:
+                        work_orders = [item for item in work_orders if item["engineer_id"] == user.engineer_id]
+                    can_admin = session.get("role") in {"super_admin", "sub_admin"}
                     ws.send(
                         json.dumps(
                             {
@@ -684,11 +745,11 @@ def register_routes(app: Flask) -> None:
                                     "dashboard": dashboard_snapshot(),
                                     "devices": devices_snapshot(),
                                     "alerts": alerts_snapshot(limit=50),
-                                    "engineers": engineers_snapshot(),
+                                    "engineers": engineers_snapshot() if can_admin else [],
                                     "users": users_snapshot() if session.get("role") == "super_admin" else [],
-                                    "work_orders": work_orders_snapshot(),
+                                    "work_orders": work_orders,
                                     "reports": reports_snapshot(),
-                                    "settings": settings_snapshot(),
+                                    "settings": settings_snapshot() if can_admin else {},
                                 },
                             },
                             ensure_ascii=False,
@@ -702,4 +763,5 @@ app = create_app()
 
 
 if __name__ == "__main__":
-    app.run(debug=True, use_reloader=False)
+    debug_enabled = os.getenv("FLASK_DEBUG", "0").lower() in {"1", "true", "yes", "on"}
+    app.run(debug=debug_enabled, use_reloader=False)

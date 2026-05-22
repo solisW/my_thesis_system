@@ -8,8 +8,8 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 os.environ.setdefault("DB_BACKEND", "sqlite")
-os.environ.setdefault("DRIFT_MONITOR_ENABLED", "0")
-os.environ.setdefault("ASYNC_DETECTION_ENABLED", "0")
+os.environ["DRIFT_MONITOR_ENABLED"] = "0"
+os.environ["ASYNC_DETECTION_ENABLED"] = "0"
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
@@ -18,7 +18,8 @@ if str(PROJECT_ROOT) not in sys.path:
 from src.app import app
 from src.carrier_gateway import ingest_carrier_payload
 from src.domain.monitoring import settings_snapshot
-from src.services import devices_snapshot
+from src.database import Device
+from src.services import delete_device, devices_snapshot
 
 
 def assert_true(condition: bool, message: str) -> None:
@@ -58,8 +59,10 @@ def validate_frontend_assets() -> list[str]:
 
 
 def validate_authenticated_api() -> dict[str, object]:
+    run_id = int(time.time() * 1000)
+    created_meter_ids: list[str] = []
     payload = {
-        "deviceId": "GM-HEALTH-001",
+        "deviceId": f"GM-HEALTH-001-{run_id}",
         "eventTime": int(time.time() * 1000),
         "properties": {
             "instantFlow": 0.42,
@@ -72,7 +75,7 @@ def validate_authenticated_api() -> dict[str, object]:
         },
     }
     reading_payload = {
-        "meter_id": "GM-HEALTH-HTTP",
+        "meter_id": f"GM-HEALTH-HTTP-{run_id}",
         "name": "Health Check Meter",
         "location": "Health Check Station",
         "area": "A区",
@@ -85,90 +88,104 @@ def validate_authenticated_api() -> dict[str, object]:
         "temperature": 20.5,
         "pressure": 2.04,
     }
+    created_meter_ids.extend([payload["deviceId"], reading_payload["meter_id"]])
 
-    with app.test_client() as client:
-        root = assert_response_ok(client.get("/"), "root API")
-        assert_true(root.get("ok") is True, "root API did not return ok=true")
-        assert_response_ok(client.get("/api/auth/session"), "anonymous session", expected_status=401)
+    try:
+        with app.test_client() as client:
+            root = assert_response_ok(client.get("/"), "root API")
+            assert_true(root.get("ok") is True, "root API did not return ok=true")
+            assert_response_ok(client.get("/api/auth/session"), "anonymous session", expected_status=401)
 
-        login = assert_response_ok(
-            client.post(
-                "/api/auth/login",
-                json={
-                    "username": os.getenv("SUPER_ADMIN_USERNAME", "solisW"),
-                    "password": os.getenv("SUPER_ADMIN_PASSWORD", "777803wzw@"),
-                },
-            ),
-            "admin login",
+            login = assert_response_ok(
+                client.post(
+                    "/api/auth/login",
+                    json={
+                        "username": os.getenv("SUPER_ADMIN_USERNAME", "solisW"),
+                        "password": os.getenv("SUPER_ADMIN_PASSWORD", "777803wzw@"),
+                    },
+                ),
+                "admin login",
+            )
+            assert_true(login.get("authenticated") is True, "admin login did not create a session")
+
+            endpoints = [
+                "/api/dashboard",
+                "/api/devices",
+                "/api/alerts",
+                "/api/work-orders",
+                "/api/engineers",
+                "/api/users",
+                "/api/history",
+                "/api/reconstruction",
+                "/api/reports",
+                "/api/settings",
+                "/api/training",
+                "/api/drift",
+                "/api/mqtt",
+                "/api/labeled-samples",
+            ]
+            for endpoint in endpoints:
+                assert_response_ok(client.get(endpoint), endpoint)
+
+            registered = assert_response_ok(
+                client.post(
+                    "/api/device/register",
+                    json={
+                        "meter_id": reading_payload["meter_id"],
+                        "name": reading_payload["name"],
+                        "location": reading_payload["location"],
+                        "area": reading_payload["area"],
+                        "protocol": "HTTP",
+                    },
+                ),
+                "device register",
+            )
+            assert_true(registered.get("api_key"), "device register did not return api_key")
+            upload = assert_response_ok(
+                client.post(
+                    "/api/device/upload",
+                    json=reading_payload,
+                    headers={"X-API-Key": registered["api_key"]},
+                ),
+                "device upload",
+            )
+            assert_true(upload.get("ok") is True, "device upload did not return ok=true")
+
+        with app.app_context():
+            carrier_result = ingest_carrier_payload("smoke", payload, async_detection=False)
+            settings = settings_snapshot()
+            devices = devices_snapshot()
+
+        assert_true(carrier_result["meter_id"] == payload["deviceId"], "carrier webhook did not ingest the expected meter")
+        assert_true(settings["device_upload_api"] == "/api/device/upload", "settings device upload API is wrong")
+        assert_true(
+            settings["carrier_webhook_api"] == "/api/carrier/webhook/<provider>",
+            "settings carrier webhook API is wrong",
         )
-        assert_true(login.get("authenticated") is True, "admin login did not create a session")
-
-        endpoints = [
-            "/api/dashboard",
-            "/api/devices",
-            "/api/alerts",
-            "/api/work-orders",
-            "/api/engineers",
-            "/api/users",
-            "/api/history",
-            "/api/reconstruction",
-            "/api/reports",
-            "/api/settings",
-            "/api/training",
-            "/api/drift",
-            "/api/mqtt",
-            "/api/labeled-samples",
-        ]
-        for endpoint in endpoints:
-            assert_response_ok(client.get(endpoint), endpoint)
-
-        registered = assert_response_ok(
-            client.post(
-                "/api/device/register",
-                json={
-                    "meter_id": reading_payload["meter_id"],
-                    "name": reading_payload["name"],
-                    "location": reading_payload["location"],
-                    "area": reading_payload["area"],
-                    "protocol": "HTTP",
-                },
-            ),
-            "device register",
+        assert_true(
+            any(item["meter_id"] == payload["deviceId"] for item in devices),
+            "carrier-ingested device is missing from device snapshot",
         )
-        assert_true(registered.get("api_key"), "device register did not return api_key")
-        upload = assert_response_ok(
-            client.post(
-                "/api/device/upload",
-                json=reading_payload,
-                headers={"X-API-Key": registered["api_key"]},
-            ),
-            "device upload",
+        assert_true(
+            any(item["meter_id"] == reading_payload["meter_id"] for item in devices),
+            "HTTP-ingested device is missing from device snapshot",
         )
-        assert_true(upload.get("ok") is True, "device upload did not return ok=true")
+        return {
+            "carrier_result": carrier_result,
+            "checked_endpoints": endpoints,
+        }
+    finally:
+        cleanup_test_devices(created_meter_ids)
 
+
+def cleanup_test_devices(meter_ids: list[str]) -> None:
+    if not meter_ids:
+        return
     with app.app_context():
-        carrier_result = ingest_carrier_payload("smoke", payload)
-        settings = settings_snapshot()
-        devices = devices_snapshot()
-
-    assert_true(carrier_result["meter_id"] == "GM-HEALTH-001", "carrier webhook did not ingest the expected meter")
-    assert_true(settings["device_upload_api"] == "/api/device/upload", "settings device upload API is wrong")
-    assert_true(
-        settings["carrier_webhook_api"] == "/api/carrier/webhook/<provider>",
-        "settings carrier webhook API is wrong",
-    )
-    assert_true(
-        any(item["meter_id"] == "GM-HEALTH-001" for item in devices),
-        "carrier-ingested device is missing from device snapshot",
-    )
-    assert_true(
-        any(item["meter_id"] == "GM-HEALTH-HTTP" for item in devices),
-        "HTTP-ingested device is missing from device snapshot",
-    )
-    return {
-        "carrier_result": carrier_result,
-        "checked_endpoints": endpoints,
-    }
+        for meter_id in meter_ids:
+            device = Device.query.filter_by(meter_id=meter_id).first()
+            if device is not None:
+                delete_device(device.id)
 
 
 def main() -> None:

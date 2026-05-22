@@ -21,7 +21,13 @@ FIELD_ALIASES = {
 }
 
 
-def ingest_carrier_payload(provider: str, payload: dict[str, Any], request_token: str = "") -> dict[str, Any]:
+def ingest_carrier_payload(
+    provider: str,
+    payload: dict[str, Any],
+    request_token: str = "",
+    *,
+    async_detection: bool = True,
+) -> dict[str, Any]:
     if CARRIER_WEBHOOK_TOKEN and request_token.strip() != CARRIER_WEBHOOK_TOKEN:
         raise ValueError("运营商接口令牌无效。")
 
@@ -53,7 +59,7 @@ def ingest_carrier_payload(provider: str, payload: dict[str, Any], request_token
         "temperature": _pick(flat_payload, FIELD_ALIASES["temperature"]),
         "pressure": _pick(flat_payload, FIELD_ALIASES["pressure"]),
     }
-    device, reading = accept_device_reading(device.api_key, reading_payload, emit_event=True, async_detection=True)
+    device, reading = accept_device_reading(device.api_key, reading_payload, emit_event=True, async_detection=async_detection)
     return {
         "meter_id": device.meter_id,
         "provider": provider,
